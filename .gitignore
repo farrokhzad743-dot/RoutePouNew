@@ -1,0 +1,27 @@
+# Build output
+build/
+dist/
+dist-out/
+*.spec
+relaywg-client.exe
+wintun.dll
+*.aar
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Secrets: never commit signing keys
+*.jks
+*.keystore
+*.p12
+keystore.properties
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
+.gradle/
+local.properties
