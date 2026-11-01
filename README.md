@@ -1,106 +1,282 @@
-<div align="center">
+<div align="center"><img src="logo.png" width="130" alt="RoutePou Logo" />RoutePou
 
-<img src="logo.png" width="110" alt="RoutePou" />
+Your Android. Your Gateway.
 
-# RoutePou
+اینترنت و VPN گوشی اندروید، روی ویندوز شما.
 
-**اینترنت و VPN گوشی اندروید را با اسکن یک QR به ویندوز وصل کنید**
-*Share your Android phone's internet — and its VPN — with a Windows PC by scanning a QR code.*
+اتصال گوشی اندرویدی به کامپیوتر ویندوزی از طریق یک ارتباط امن، سریع و ساده؛ فقط با اسکن یک QR Code.
 
-`0.27.0-beta` · Android 8.0+ · Windows 10/11 (64-bit) · GPL-3.0
+<br>""Version" (https://img.shields.io/badge/version-0.27.0--beta-6366f1?style=for-the-badge)" (VERSION)
+""Platform" (https://img.shields.io/badge/Android-8.0%2B-3DDC84?style=for-the-badge&logo=android&logoColor=white)" (#)
+""Platform" (https://img.shields.io/badge/Windows-10%2F11-0078D4?style=for-the-badge&logo=windows&logoColor=white)" (#)
+""License" (https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge)" (LICENSE)
 
-</div>
+<br>"دانلود آخرین نسخه" (../../releases/latest) · "گزارش مشکل" (../../issues) · "راهنمای نصب" (#-نصب-و-راهاندازی)
 
-> ⚠️ **پیش‌انتشار.** کد کامل است و تست‌های خودکار دارد، ولی اتصال واقعی دو دستگاه هنوز روی سخت‌افزار تست نشده است. فهرست آزمایش: [`TESTING.md`](TESTING.md).
+<br></div>---
 
-## کار برنامه
+✦ درباره RoutePou
 
-گوشی هات‌اسپات را روشن می‌کند، ویندوز به آن وصل می‌شود و با اسکن QR اینترنت گوشی — با هر VPN که روی گوشی روشن است — در ویندوز قابل استفاده می‌شود.
+RoutePou یک ابزار ارتباطی بین گوشی اندرویدی و کامپیوتر ویندوزی است که گوشی را به دروازه اینترنت کامپیوتر تبدیل می‌کند.
 
-| حالت | توضیح | وضعیت |
-|---|---|---|
-| **پروکسی امن** | ویندوز پراکسی سیستم (`127.0.0.1:17878`) و SOCKS5 (`127.0.0.1:17879`) را فعال می‌کند؛ ترافیک با TLS به گوشی می‌رود | بتا |
-| **تونل کامل WireGuard** | یک آداپتر مجازی می‌سازد و **همهٔ** ترافیک (TCP/UDP/DNS) را از گوشی عبور می‌دهد؛ نیاز به Administrator | آزمایشی |
+با RoutePou می‌توانید اینترنت گوشی و اتصال VPN فعال روی آن را در ویندوز استفاده کنید؛ بدون نیاز به تنظیمات پیچیده و کانفیگ دستی.
 
-## نصب
+اتصال در سه قدم:
 
-از صفحهٔ **Releases** این ریپو دو فایل را بگیرید:
-- `RoutePou-…-android.apk` → روی گوشی نصب کنید (اجازهٔ «نصب از منبع ناشناس»).
-- `RoutePou-…-windows-x64.exe` → اجرا کنید (اگر SmartScreen هشدار داد: *More info → Run anyway*؛ فایل امضای دیجیتال ندارد).
+1. هات‌اسپات گوشی را روشن کنید.
+2. کامپیوتر را به هات‌اسپات متصل کنید.
+3. QR Code را اسکن کنید.
 
-سپس: هات‌اسپات گوشی را روشن کنید و ویندوز را وصل کنید ← در برنامهٔ اندروید «شروع اشتراک‌گذاری» (یا تونل کامل از «تنظیمات پیشرفته») ← در برنامهٔ ویندوز «اسکن با دوربین» (یا انتخاب تصویر QR / Clipboard).
-
-QR یک **رمز** است؛ آن را به کسی نشان ندهید. QR تونل کامل پس از ۵ دقیقه منقضی می‌شود.
-
-## قرار دادن در GitHub و ساخت فایل‌ها
-
-**۱. ساخت ریپوی جدید:** در GitHub، *New repository*، یک نام (مثلاً `RoutePou`) بدهید و **هیچ فایلی (README/license) را تیک نزنید**.
-
-**۲. آپلود (روش مطمئن با Git):** زیپ را باز کنید، داخل همان پوشه PowerShell باز کنید (باید `README.md` و پوشهٔ `.github` را ببینید):
-```powershell
-git init -b main
-git add .
-git commit -m "RoutePou 0.27.0-beta"
-git remote add origin https://github.com/<نام-کاربری>/RoutePou.git
-git push -u origin main
-```
-> اگر از آپلود وب (*Add file → Upload files*) استفاده می‌کنید: **محتویات** پوشه را انتخاب و بکشید، نه خود پوشه را. بعد از آپلود باید در صفحهٔ اصلی ریپو پوشهٔ `.github` را ببینید؛ اگر نبود، *Add file → Create new file* بزنید، به‌عنوان نام `.github/workflows/build.yml` را تایپ کنید و محتوای فایل `build.yml` همین پروژه را در آن بچسبانید. بدون این فایل **هیچ بیلدی اجرا نمی‌شود**.
-
-**۳. بیلد آزمایشی:** تب **Actions ← Build and Release ← Run workflow**. پس از پایان، از انتهای صفحهٔ اجرا، `RoutePou-Android` و `RoutePou-Windows` را دانلود کنید. در خلاصهٔ هر job نوشته شده که موتور تونل کامل داخل فایل هست یا نه.
-
-**۴. انتشار رسمی:**
-```powershell
-git tag v0.27.0-beta
-git push origin v0.27.0-beta
-```
-GitHub Actions خودش APK و EXE را می‌سازد و یک Release با checksum منتشر می‌کند (تگ باید با فایل `VERSION` یکی باشد).
-
-**۵. (توصیه‌شده) امضای ثابت اندروید:** بدون آن APK با کلید موقت امضا می‌شود و نسخه‌های بعدی روی آن نصب نمی‌شوند مگر با حذف نسخهٔ قبل. با `./make-keystore.sh` (نیاز به JDK) کلید بسازید و چهار Secret را در *Settings → Secrets and variables → Actions* بگذارید: `ANDROID_KEYSTORE_BASE64` (خروجی `base64 -w0 routepou-release.jks`)، `ANDROID_KEYSTORE_PASSWORD`، `ANDROID_KEY_ALIAS`، `ANDROID_KEY_PASSWORD`. فایل `.jks` و رمزها را جای امن نگه دارید؛ هرگز در ریپو نگذارید.
-
-## ساختار فایل‌ها (همه در صفحهٔ اصلی)
-
-| فایل‌ها | کار |
-|---|---|
-| `*.kt`, `AndroidManifest.xml`, `res/`, `android-*.kts`, `android-gradle.properties`, `proguard-rules.pro` | برنامهٔ اندروید |
-| `relaywg.go`, `netstack.go`, `upstream.go`, `mobile.go`, `*_test.go`, `go.mod`, `go.sum` | موتور WireGuard گوشی (Go → `relaywg.aar`) |
-| `winclient/` | کارگر ممتاز ویندوز (`relaywg-client.exe`: Wintun + WireGuard + فیلتر نشت) |
-| `routepou_windows.py`, `pairing.py`, `wg_provision.py`, `wg_supervisor.py`, `proxy_headers.py` | برنامهٔ ویندوز |
-| `build-aar.sh`, `stage-android.sh`, `make-keystore.sh` | اسکریپت‌های بیلد |
-| `.github/workflows/build.yml` | تست، بیلد و انتشار |
-| `test_*.py`, `test-vectors.json` | تست‌ها |
-
-فقط سه پوشه ضروری است و حذف‌شدنی نیست: `.github` (GitHub فقط از آنجا workflow می‌خواند)، `res` (اندروید منابع را فقط از پوشهٔ مخصوص می‌پذیرد) و `winclient` (Go هر پکیج را در یک پوشهٔ جدا می‌خواهد).
-
-## بیلد محلی
-
-**اندروید** (JDK 17، Go 1.25+، SDK 35، NDK r27؛ Gradle 8.9):
-```bash
-export ANDROID_HOME=~/Android/Sdk ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.2.12479018
-./build-aar.sh          # اختیاری: موتور تونل کامل → build/relaywg.aar
-./stage-android.sh      # پروژهٔ استاندارد اندروید در build/android
-cd build/android && gradle assembleDebug     # یا این پوشه را در Android Studio باز کنید
-```
-**ویندوز** (Python 3.12 + Go 1.25):
-```powershell
-go build -trimpath -ldflags="-s -w" -o relaywg-client.exe ./winclient
-# wintun.dll (amd64) را از https://www.wintun.net کنار فایل‌ها بگذارید
-pip install pyinstaller zxing-cpp pillow opencv-python
-pyinstaller --onefile --windowed --icon routepou.ico --collect-all zxingcpp --collect-all PIL --collect-all cv2 --add-binary "relaywg-client.exe;." --add-binary "wintun.dll;." --name RoutePou routepou_windows.py
-```
-**تست:** `pip install pytest pyyaml && pytest` و `go test .`
-
-## محدودیت‌ها
-
-- حالت پروکسی فقط برنامه‌هایی را پوشش می‌دهد که از پراکسی سیستم ویندوز پیروی کنند؛ برای کل ترافیک از تونل کامل استفاده کنید.
-- اندروید ۱۵ ممکن است سرویس پیش‌زمینهٔ `dataSync` را پس از حدود ۶ ساعت متوقف کند؛ دوباره شروع کنید.
-- فقط IPv4 و شبکه‌های خصوصی هات‌اسپات (`10.x`، `172.16–31.x`، `192.168.x`).
-- معماری امنیتی و گزارش آسیب‌پذیری: [`SECURITY.md`](SECURITY.md). لایسنس‌های اجزا: [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
-
-## لایسنس
-
-GPL-3.0 (شامل کد GPL موتور Relay). متن کامل: [`LICENSE`](LICENSE).
+تمام!
 
 ---
 
-### English summary
-RoutePou turns an Android phone into a gateway for a Windows PC: enable the hotspot, connect the PC, scan a QR. **Proxy mode** (beta) tunnels HTTP/HTTPS/SOCKS5 over per-install, fingerprint-pinned TLS; **Full tunnel** (experimental) runs a userspace WireGuard endpoint on the phone and a Wintun client on Windows. Push this repository to GitHub as-is (keep the `.github` folder), run *Actions → Build and Release*, or push a tag like `v0.27.0-beta` to publish a Release with the APK, the EXE and checksums. Unit-tested and CI-built, **not yet validated on real devices** — see `TESTING.md`.
+⚡ قابلیت‌ها
+
+<table>
+<tr>
+<td width="50%" valign="top">🔐 Secure Connection
+
+ارتباط رمزنگاری‌شده میان گوشی و ویندوز با استفاده از TLS و تأیید اثرانگشت گواهی.
+
+</td>
+<td width="50%" valign="top">📱 QR Pairing
+
+اتصال آسان دو دستگاه با اسکن QR Code بدون واردکردن دستی اطلاعات.
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">🌐 Android VPN Sharing
+
+امکان استفاده از اینترنت و VPN فعال روی گوشی در کامپیوتر.
+
+</td>
+<td width="50%" valign="top">🖥 Windows Integration
+
+پشتیبانی از پراکسی ویندوز و SOCKS5 برای استفاده از اتصال گوشی.
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">🚀 WireGuard Full Tunnel
+
+موتور تونل کامل برای انتقال ترافیک TCP، UDP و DNS از طریق گوشی.
+
+</td>
+<td width="50%" valign="top">🛡 Temporary QR Security
+
+اطلاعات اتصال موقت و محدودیت زمانی QR برای کاهش خطر دسترسی غیرمجاز.
+
+</td>
+</tr>
+</table>---
+
+🔄 روش‌های اتصال
+
+ویژگی| Secure Proxy| Full Tunnel
+اتصال رمزنگاری‌شده| ✓| ✓
+اتصال با QR| ✓| ✓
+پراکسی HTTP/HTTPS| ✓| ✓
+SOCKS5| ✓| ✓
+انتقال UDP| محدود به پراکسی‌های پشتیبانی‌شده| ✓ در صورت عملکرد صحیح موتور
+انتقال DNS سیستم| وابسته به برنامه| ✓ در صورت پیکربندی صحیح
+نیاز به Administrator| خیر| بله
+وضعیت| Beta| Experimental
+
+«توجه: تونل کامل هنوز آزمایشی است و عملکرد آن باید روی دستگاه‌های واقعی بررسی شود.»
+
+---
+
+📥 نصب و راه‌اندازی
+
+پیش‌نیازها
+
+دستگاه| حداقل سیستم
+Android| Android 8.0 یا بالاتر
+Windows| Windows 10 / 11 نسخه 64 بیتی
+
+مرحله اول: دانلود
+
+<div align="center">Android
+
+""Download Android" (https://img.shields.io/badge/Download-Android%20APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)" (../../releases/latest)
+
+Windows
+
+""Download Windows" (https://img.shields.io/badge/Download-Windows%20EXE-0078D4?style=for-the-badge&logo=windows&logoColor=white)" (../../releases/latest)
+
+</div>از قسمت Releases آخرین نسخه را دریافت کنید.
+
+مرحله دوم: اتصال
+
+1. برنامه RoutePou را روی هر دو دستگاه نصب کنید.
+2. هات‌اسپات گوشی را فعال کنید.
+3. ویندوز را به هات‌اسپات متصل کنید.
+4. در اندروید گزینه شروع اشتراک‌گذاری را انتخاب کنید.
+5. در ویندوز گزینه اسکن QR را بزنید.
+6. منتظر برقراری ارتباط بمانید.
+
+مرحله سوم: استفاده از VPN
+
+VPN موردنظر را در گوشی فعال کنید.
+
+سپس از طریق RoutePou اتصال اینترنت گوشی را در ویندوز استفاده کنید.
+
+---
+
+🧩 وضعیت توسعه
+
+بخش| وضعیت
+Android Application| 🟡 Beta
+Windows Application| 🟡 Beta
+QR Pairing| 🟡 Beta
+Secure TLS Transport| 🟡 Beta
+HTTP Proxy| 🟡 Beta
+SOCKS5 Proxy| 🟡 Beta
+WireGuard Engine| 🧪 Experimental
+Full Tunnel| 🧪 Experimental
+Real Device Testing| ⏳ Pending
+
+نسخه فعلی: "0.27.0-beta"
+
+این پروژه هنوز پیش‌انتشار است. موفقیت تست‌های خودکار به معنی تأیید عملکرد کامل روی دستگاه واقعی نیست.
+
+---
+
+🔒 امنیت
+
+امنیت ارتباط میان دستگاه‌ها یکی از اصول اصلی RoutePou است.
+
+- ارتباط رمزنگاری‌شده TLS
+- اعتبارسنجی اثرانگشت گواهی
+- اطلاعات اتصال موقت
+- محدودیت زمانی QR تونل کامل
+- جلوگیری از انتشار اطلاعات حساس در مخزن
+
+گزارش مشکلات امنیتی: "SECURITY.md" (SECURITY.md)
+
+---
+
+🛠 فناوری‌های استفاده‌شده
+
+فناوری| کاربرد
+Kotlin| برنامه اندروید
+Python| برنامه ویندوز
+Go| موتور WireGuard
+WireGuard| تونل ارتباطی
+Wintun| آداپتر شبکه ویندوز
+TLS| امنیت ارتباط
+Gradle| ساخت اندروید
+GitHub Actions| تست و بیلد خودکار
+
+---
+
+📁 ساختار پروژه
+
+RoutePou/
+│
+├── .github/
+│   └── workflows/
+│       └── build.yml
+│
+├── winclient/
+│
+├── res/
+│
+├── routepou_windows.py
+├── pairing.py
+├── wg_provision.py
+├── wg_supervisor.py
+├── proxy_headers.py
+│
+├── relaywg.go
+├── netstack.go
+├── upstream.go
+├── mobile.go
+│
+├── build-aar.sh
+├── stage-android.sh
+├── make-keystore.sh
+│
+├── VERSION
+├── CHANGELOG.md
+├── TESTING.md
+├── SECURITY.md
+├── LICENSE
+└── README.md
+
+---
+
+🧪 تست و توسعه
+
+برای مشاهده مراحل تست و بررسی اتصال واقعی:
+
+"TESTING.md" (TESTING.md)
+
+برای ساخت خودکار پروژه:
+
+1. وارد GitHub Actions شوید.
+2. Workflow با نام Build and Release را انتخاب کنید.
+3. گزینه Run workflow را اجرا کنید.
+4. پس از پایان موفقیت‌آمیز، فایل‌های خروجی را دریافت کنید.
+
+---
+
+📜 محدودیت‌ها
+
+- حالت Proxy فقط برنامه‌هایی را پوشش می‌دهد که از پراکسی سیستم استفاده کنند یا به‌صورت دستی روی پراکسی تنظیم شده باشند.
+- Full Tunnel هنوز آزمایشی است.
+- اندروید ۱۵ ممکن است سرویس پیش‌زمینه را پس از مدتی متوقف کند.
+- شبکه‌های IPv4 و محدوده‌های خصوصی هات‌اسپات پشتیبانی هدف پروژه هستند.
+
+---
+
+📄 مجوز استفاده
+
+این پروژه تحت مجوز GPL-3.0 منتشر می‌شود.
+
+"مشاهده متن کامل مجوز" (LICENSE)
+
+---
+
+<div align="center">RoutePou
+
+Connect. Share. Go Beyond.
+
+ساخته‌شده برای ارتباط ساده‌تر میان موبایل و کامپیوتر.
+
+<br>"GitHub Repository" (../../) · "Latest Release" (../../releases/latest) · "Report an Issue" (../../issues)
+
+<br><sub>RoutePou © 2026 — Part of the Pou ecosystem</sub>
+
+</div>---
+
+English
+
+RoutePou connects an Android phone to a Windows PC, allowing the PC to use the phone's internet connection and, where supported, its active VPN connection.
+
+Key Features
+
+- QR-based device pairing
+- Encrypted TLS communication
+- HTTP/HTTPS proxy support
+- SOCKS5 proxy support
+- Experimental WireGuard full-tunnel mode
+- Windows integration
+
+Quick Start
+
+1. Install RoutePou on Android and Windows.
+2. Enable your Android hotspot.
+3. Connect Windows to the hotspot.
+4. Start sharing on Android.
+5. Scan the QR code from Windows.
+
+Project Status
+
+RoutePou is currently in beta. Automated builds and unit tests do not yet constitute real-device validation.
+
+See "TESTING.md" (TESTING.md) for the testing checklist.
+
+License: GPL-3.0
