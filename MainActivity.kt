@@ -115,12 +115,12 @@ class MainActivity : Activity() {
         statusTitle = text("آماده اتصال", 20f, Color.WHITE, true)
         statusRow.addView(dot); statusRow.addView(statusTitle)
         hero.addView(space(8)); hero.addView(statusRow)
-        statusDetail = text("برای شروع، هات‌اسپات گوشی را روشن کنید.", 12f, muted)
+        statusDetail = text("گوشی را به همان وای‌فایِ ویندوز وصل کنید؛ اگر وای‌فای مشترک ندارید، هات‌اسپات را روشن کنید.", 12f, muted)
         hero.addView(statusDetail)
         hero.addView(space(16))
 
         val stats = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        stats.addView(infoTile("شبکه گوشی", "Hotspot", 1f))
+        stats.addView(infoTile("شبکه مشترک", "Wi-Fi / Hotspot", 1f))
         stats.addView(spaceWidth(10))
         stats.addView(infoTile("پورت سرویس", "8788", 1f))
         hero.addView(stats)
@@ -133,7 +133,7 @@ class MainActivity : Activity() {
         val modeCard = cardLayout().apply { setPadding(dp(18), dp(17), dp(18), dp(17)) }
         modeCard.addView(text("اتصال سریع با QR", 18f, Color.WHITE, true))
         modeCard.addView(space(5))
-        modeCard.addView(text("هات‌اسپات گوشی را روشن کنید، اشتراک‌گذاری را شروع کنید و QR را با دوربین RoutePou ویندوز اسکن کنید.", 12f, muted))
+        modeCard.addView(text("هات‌اسپات لازم نیست: گوشی و ویندوز را به یک وای‌فای وصل کنید، VPN گوشی را روشن کنید، اشتراک‌گذاری را شروع کنید و QR را در RoutePou ویندوز اسکن کنید.", 12f, muted))
         modeCard.addView(space(13))
         proxyStartButton = primaryButton("شروع اشتراک‌گذاری") { startProxy() }
         modeCard.addView(proxyStartButton, matchWrap())
@@ -268,18 +268,18 @@ class MainActivity : Activity() {
     }
 
     private fun refreshNetworkInfo() {
-        val host = hotspotIpv4()
-        addressView.text = host ?: "هات‌اسپات پیدا نشد؛ ابتدا آن را روشن کنید."
+        val host = lanIpv4()
+        addressView.text = host ?: "شبکه‌ای پیدا نشد؛ گوشی را به وای‌فای وصل کنید یا هات‌اسپات را روشن کنید."
         if (!fullTunnelRequested && !proxyStarted) {
-            statusTitle.text = if (host == null) "منتظر هات‌اسپات" else "آماده اتصال"
-            statusDetail.text = if (host == null) "هات‌اسپات گوشی را روشن و ویندوز را به آن متصل کنید." else "شبکه شناسایی شد؛ یکی از روش‌های اتصال را انتخاب کنید."
+            statusTitle.text = if (host == null) "منتظر شبکه" else "آماده اتصال"
+            statusDetail.text = if (host == null) "گوشی را به همان وای‌فایِ ویندوز وصل کنید، یا هات‌اسپات را روشن و ویندوز را به آن وصل کنید." else "شبکه شناسایی شد؛ یکی از روش‌های اتصال را انتخاب کنید."
         }
         refreshQr()
     }
 
     private fun refreshQr() {
         if (!::qrView.isInitialized) return
-        val host = hotspotIpv4()
+        val host = lanIpv4()
         if (fullModePayload.isNotBlank()) { renderQr(fullModePayload); return }
         if (host == null || fingerprint.length != 64) { qrView.setImageBitmap(null); return }
         val payload = "routepou://pair?host=${enc(host)}&port=8788&key=${enc(pairingToken)}&fp=${enc(fingerprint)}"
@@ -298,7 +298,7 @@ class MainActivity : Activity() {
 
     private fun startFullTunnel() {
         try {
-            val host = hotspotIpv4() ?: error("هات‌اسپات پیدا نشد. آن را روشن کنید و ویندوز را متصل کنید.")
+            val host = lanIpv4() ?: error("شبکه‌ای پیدا نشد. گوشی را به وای‌فای وصل کنید یا هات‌اسپات را روشن کنید.")
             check(WireGuardEngine.isAvailable()) { "موتور WireGuard داخل APK موجود نیست. ابتدا AAR را بسازید." }
             val keys = RoutePouWgKeys.generate()
             val ipc = RoutePouWgConfig.serverIpc(keys)
@@ -329,7 +329,7 @@ class MainActivity : Activity() {
 
     private fun startProxy() {
         try {
-            val host = hotspotIpv4() ?: error("ابتدا هات‌اسپات گوشی را روشن کنید.")
+            val host = lanIpv4() ?: error("شبکه‌ای پیدا نشد. گوشی را به وای‌فای وصل کنید یا هات‌اسپات را روشن کنید.")
             val intent = Intent(this, ProxyService::class.java).setAction(ProxyService.ACTION_START)
             if (Build.VERSION.SDK_INT >= 26) startForegroundService(intent) else startService(intent)
             proxyStarted = true
@@ -377,12 +377,40 @@ class MainActivity : Activity() {
         return value
     }
 
-    private fun hotspotIpv4(): String? = try {
-        NetworkInterface.getNetworkInterfaces().toList().flatMap { it.inetAddresses.toList() }
-            .filterIsInstance<Inet4Address>().filter { !it.isLoopbackAddress }
-            .mapNotNull { it.hostAddress }
-            .firstOrNull { it.startsWith("192.168.") || it.startsWith("10.") || it.matches(Regex("""172\.(1[6-9]|2[0-9]|3[01])\..*""")) }
+    /**
+     * The phone's address on the network the PC can actually reach: a joined Wi-Fi network,
+     * the phone's own hotspot, USB tethering or Ethernet.
+     *
+     * Virtual and mobile-data interfaces are skipped on purpose. A running VPN (tun0 and friends)
+     * and the cellular interface also carry private addresses (10.x, 172.x), but the PC cannot
+     * reach the phone through them, and the first private address found used to be one of those.
+     */
+    private fun lanIpv4(): String? = try {
+        val candidates = ArrayList<Pair<Int, String>>()
+        for (ni in NetworkInterface.getNetworkInterfaces().toList()) {
+            if (!ni.isUp || ni.isLoopback || ni.isPointToPoint) continue
+            val rank = interfaceRank(ni.name.lowercase())
+            if (rank < 0) continue
+            for (addr in ni.inetAddresses.toList()) {
+                if (addr is Inet4Address && !addr.isLoopbackAddress && addr.isSiteLocalAddress) {
+                    val found = addr.hostAddress
+                    if (found != null) candidates.add(Pair(rank, found))
+                }
+            }
+        }
+        candidates.minByOrNull { it.first }?.second
     } catch (ignored: Exception) { null }
+
+    /** Lower is better; -1 means never use. */
+    private fun interfaceRank(name: String): Int = when {
+        name.startsWith("ap") || name.startsWith("swlan") || name.startsWith("softap") -> 0
+        name.startsWith("wlan") || name.startsWith("wifi") -> 1
+        name.startsWith("rndis") || name.startsWith("usb") || name.startsWith("eth") -> 2
+        name.startsWith("rmnet") || name.startsWith("ccmni") || name.startsWith("tun") ||
+            name.startsWith("ppp") || name.startsWith("tap") || name.startsWith("dummy") ||
+            name.startsWith("v4-") || name.startsWith("clat") || name.startsWith("lo") -> -1
+        else -> 3
+    }
 
     override fun onResume() { super.onResume(); if (::addressView.isInitialized) refreshNetworkInfo() }
 }

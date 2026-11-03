@@ -1,7 +1,7 @@
 """RoutePou Windows companion: authenticated HTTP and SOCKS5 TCP bridges."""
 import atexit, socket, ssl, hashlib, hmac, threading, tkinter as tk, sys
 from pathlib import Path
-from pairing import parse_pairing_payload
+from pairing import parse_pairing_payload, describe_connect_error
 from proxy_headers import rewrite_request_head
 from wg_provision import parse_qr_to_windows_ipc
 from wg_supervisor import WindowsWireGuardSession, WorkerError
@@ -218,6 +218,8 @@ def connect():
         return
     phone = ip.get().strip(); token = key_var.get().strip(); port = port_var.get().strip(); fingerprint = fingerprint_var.get().strip()
     try:
+        if not phone:
+            raise ValueError("ابتدا QR را اسکن کنید یا IP گوشی را وارد کنید.")
         socket.inet_aton(phone)
         if not token or len(token) < 16 or not port.isdigit() or not 1 <= int(port) <= 65535 or len("".join(c for c in fingerprint if c in "0123456789abcdefABCDEF")) != 64:
             raise ValueError("اطلاعات Pairing ناقص یا نامعتبر است. کد اتصال را دوباره وارد کنید.")
@@ -243,7 +245,7 @@ def connect():
             root.after(0, lambda: set_status("متصل به گوشی · پراکسی ویندوز فعال است", "connected"))
         except Exception as exc:
             stop_event.set()
-            root.after(0, lambda err=str(exc): (set_status("اتصال برقرار نشد", "error"), messagebox.showerror("RoutePou", err)))
+            root.after(0, lambda err=describe_connect_error(exc): (set_status("اتصال برقرار نشد", "error"), messagebox.showerror("RoutePou", err)))
         finally:
             connect.busy = False
             root.after(0, lambda: connect_button.configure(state="normal"))
@@ -373,12 +375,12 @@ def card(parent, title, subtitle=None):
         tk.Label(box, text=subtitle, font=(FONT, 9), fg=COLORS["muted"], bg=COLORS["panel"], wraplength=650, justify="left").pack(anchor="w", padx=18, pady=(0, 10))
     return box
 
-pair_card = card(outer, "۱. اتصال گوشی", "هات‌اسپات گوشی را روشن کنید؛ QR داخل برنامه اندروید را اسکن کنید یا تصویر QR را انتخاب کنید. اطلاعات دستی لازم نیست.")
+pair_card = card(outer, "۱. اتصال گوشی", "گوشی و ویندوز را به یک وای‌فای وصل کنید (هات‌اسپات لازم نیست)، VPN گوشی را روشن کنید و QR داخل برنامهٔ اندروید را اسکن کنید یا تصویر QR را انتخاب کنید. وارد کردن IP لازم نیست.")
 pair_card.pack(fill="x", pady=(0, 14))
 form = tk.Frame(pair_card, bg=COLORS["panel"])
 form.pack(fill="x", padx=18, pady=(0, 16))
 
-ip = tk.StringVar(value="192.168.43.1")
+ip = tk.StringVar(value="")
 port_var = tk.StringVar(value=PHONE_PORT_DEFAULT)
 key_var = tk.StringVar()
 fingerprint_var = tk.StringVar()
@@ -534,7 +536,7 @@ advanced_toggle = tk.Button(form, text="تنظیمات دستی پیشرفته",
                              relief="flat", padx=10, pady=6, cursor="hand2")
 advanced_toggle.pack(anchor="w", pady=(8, 0))
 row1 = tk.Frame(advanced, bg=COLORS["panel"]); row1.pack(fill="x")
-for label, var, secret in (("IP هات‌اسپات گوشی", ip, False), ("پورت سرویس", port_var, False)):
+for label, var, secret in (("IP گوشی در شبکه", ip, False), ("پورت سرویس", port_var, False)):
     w, _ = make_field(row1, label, var, secret=secret)
     w.pack(side="left", fill="x", expand=True, padx=(0, 10))
 row2 = tk.Frame(advanced, bg=COLORS["panel"]); row2.pack(fill="x")

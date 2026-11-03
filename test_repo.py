@@ -80,8 +80,9 @@ def test_go_layout_is_one_module():
 def test_repo_has_no_stray_files_and_stays_flat():
     allowed_dirs = {".github", "res", "winclient", "build", "__pycache__", ".pytest_cache", ".git"}
     assert {p.name for p in ROOT.iterdir() if p.is_dir()} <= allowed_dirs
-    for name in ("LICENSE", "README.md", "SECURITY.md", "TESTING.md", "THIRD_PARTY_NOTICES.md", "logo.png",
-                 ".gitignore"):
+    for name in ("LICENSE", "README.md", "README.fa.md", "PUBLISHING.md", "SECURITY.md", "TESTING.md",
+                 "THIRD_PARTY_NOTICES.md", "logo.png", ".gitignore", "index.html", "app.css", "app.js", "strings.js",
+                 "sw.js", "manifest.webmanifest", ".nojekyll", "hero.png", "og-image.png", "set-repo.py"):
         assert (ROOT / name).is_file(), name
     assert "GNU GENERAL PUBLIC LICENSE" in (ROOT / "LICENSE").read_text(encoding="utf-8")
     ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")

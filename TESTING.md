@@ -1,6 +1,6 @@
 # Real-device checklist
 
-A green CI run proves the code compiles and the unit tests pass. It does **not** prove that traffic flows. Run these on a physical Android phone (hotspot on) and a Windows 10/11 PC before calling a release stable. Never share screenshots or logs that contain QR contents, tokens or keys.
+A green CI run proves the code compiles and the unit tests pass. It does **not** prove that traffic flows. Run these on a physical Android phone and a Windows 10/11 PC on the same Wi-Fi (then repeat once with the phone's hotspot) before calling a release stable. Never share screenshots or logs that contain QR contents, tokens or keys.
 
 ## A. Proxy mode
 1. Phone: **Start sharing** (شروع اشتراک‌گذاری). Windows: scan the QR. Status turns green.
@@ -17,7 +17,7 @@ A green CI run proves the code compiles and the unit tests pass. It does **not**
 5. **Fail closed:** stop the tunnel on the phone while connected. Windows traffic must stop, not fall back to its own Wi-Fi.
 6. Restore the phone side: the tunnel must recover without manual cleanup.
 7. **Disconnect** normally, then repeat and force-kill the worker (`relaywg-client.exe`) in Task Manager. `route print`, DNS settings and the firewall must return to normal after Disconnect/restart.
-8. Repeat after: hotspot reconnect, phone screen off for 10 minutes, Windows sleep/resume.
+8. Repeat after: Wi-Fi or hotspot reconnect, phone screen off for 10 minutes, Windows sleep/resume.
 
 ## C. What to report
 App versions, which step failed, and the worker status lines (STARTING, HANDSHAKE, READY, PEER-LOST, PEER-BACK). Do not include secrets.

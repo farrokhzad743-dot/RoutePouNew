@@ -156,7 +156,7 @@ class WindowsWireGuardSession:
                 return
             if line == "NO-HANDSHAKE":
                 self.close()
-                raise WorkerError("گوشی پاسخ WireGuard نداد. هات‌اسپات را بررسی و QR تازه تولید کنید.")
+                raise WorkerError("گوشی پاسخ WireGuard نداد. مطمئن شوید گوشی و ویندوز روی یک شبکه‌اند (یک وای‌فای، یا هات‌اسپات گوشی)، «جداسازی کلاینت‌ها» در روتر خاموش است، و QR تازه بگیرید.")
             if line == "LEAK-PROTECTION-FAILED":
                 self.close()
                 raise WorkerError("محافظت نشت ترافیک در ویندوز فعال نشد؛ برای جلوگیری از اتصال ناامن، تونل لغو شد.")
