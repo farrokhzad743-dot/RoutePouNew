@@ -21,47 +21,44 @@ env:
   ANDROID_BUILD_TOOLS: '35.0.0'
 
 jobs:
-
+  # ------------------------------------------------------------------ Python tests
   python-tests:
     name: Python tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
       - run: python -m pip install --upgrade pip pytest pyyaml
       - run: python -m pytest -q
 
+  # ------------------------------------------------------------ Go engine tests
+  # Advisory: a failure here is shown as a warning but does not stop the APK/EXE builds.
   go-engine:
-    name: Go engine tests
+    name: Go engine tests (advisory)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-go@v5
         with:
           go-version: '1.25.x'
           cache-dependency-path: go.sum
-
       - run: go vet .
       - run: go test -count=1 .
 
+  # ---------------------------------------------------------------------- Android
   android:
     name: Android APK
     runs-on: ubuntu-latest
     timeout-minutes: 60
-
     env:
       ROUTEPOU_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ROUTEPOU_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
       ROUTEPOU_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-
     steps:
       - uses: actions/checkout@v4
 
@@ -80,7 +77,7 @@ jobs:
 
       - uses: android-actions/setup-android@v3
 
-      - name: Install Android tools
+      - name: Install Android platform, build-tools and NDK
         run: |
           yes | sdkmanager --licenses > /dev/null || true
           sdkmanager "platform-tools" "platforms;android-${ANDROID_COMPILE_SDK}" \
@@ -91,7 +88,7 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Restore release signing key
+      - name: Restore release signing key (if configured)
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
@@ -101,10 +98,12 @@ jobs:
             echo "SIGNING=release-key" >> "$GITHUB_ENV"
           else
             echo "SIGNING=debug-key" >> "$GITHUB_ENV"
-            echo "::warning::Using debug signing key."
+            echo "::warning::No ANDROID_KEYSTORE_BASE64 secret: the APK is signed with the debug key (fine for testing; see README)."
           fi
 
-      - name: Build Full Tunnel engine
+      # Optional component: if the Go engine cannot be built, the APK is still produced
+      # (proxy mode works) and the release notes say that Full Tunnel is missing.
+      - name: Build Full Tunnel engine (relaywg.aar)
         id: aar
         continue-on-error: true
         run: bash build-aar.sh
@@ -115,7 +114,7 @@ jobs:
             echo "FULL_TUNNEL=included" >> "$GITHUB_ENV"
           else
             echo "FULL_TUNNEL=missing" >> "$GITHUB_ENV"
-            echo "::warning::Full Tunnel engine missing."
+            echo "::warning::relaywg.aar failed to build: this APK has NO Full Tunnel engine (proxy mode only). See the 'Build Full Tunnel engine' step log."
           fi
 
       - name: Stage Android project
@@ -125,25 +124,20 @@ jobs:
         working-directory: build/android
         run: gradle --no-daemon --stacktrace assembleDebug assembleRelease
 
-      - name: Verify APKs
+      - name: Verify and name APKs
         run: |
           set -euo pipefail
           out=build/android/build/outputs/apk
           rel="$(ls "$out"/release/*.apk | head -n1)"
           dbg="$(ls "$out"/debug/*.apk | head -n1)"
-          test -s "$rel"
-          test -s "$dbg"
-
+          test -s "$rel"; test -s "$dbg"
           "$ANDROID_HOME/build-tools/${ANDROID_BUILD_TOOLS}/apksigner" verify --print-certs "$rel"
-
           mkdir -p dist
-          cp "$rel" "dist/RoutePou-${VERSION}-android.apk"
-          cp "$dbg" "dist/RoutePou-${VERSION}-android-debug.apk"
-
-          {
-            echo "android_signing=${SIGNING}"
-            echo "android_full_tunnel=${FULL_TUNNEL}"
-          } > dist/info-android.txt
+          cp "$rel" "dist/RoutePou-android.apk"
+          cp "$dbg" "dist/RoutePou-android-debug.apk"
+          { echo "android_signing=${SIGNING}"; echo "android_full_tunnel=${FULL_TUNNEL}"; } > dist/info-android.txt
+          ls -lh dist
+          { echo "### Android"; echo "- Full Tunnel engine: **${FULL_TUNNEL}**"; echo "- Signing: **${SIGNING}**"; } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -154,11 +148,11 @@ jobs:
             dist/*.apk
             dist/info-android.txt
 
+  # ---------------------------------------------------------------------- Windows
   windows:
     name: Windows EXE
     runs-on: windows-latest
     timeout-minutes: 45
-
     steps:
       - uses: actions/checkout@v4
 
@@ -180,91 +174,54 @@ jobs:
       - name: Install Python dependencies
         run: python -m pip install --upgrade pip pyinstaller zxing-cpp pillow opencv-python
 
-      - name: Check modules
+      - name: Check the app's modules import
         run: python -c "import pairing, wg_provision, wg_supervisor, proxy_headers, cv2, zxingcpp, PIL, tkinter, winreg; print('imports ok')"
 
-      - name: Test WireGuard worker
+      - name: Test the WireGuard worker (advisory)
         continue-on-error: true
         run: go test ./winclient
 
-      - name: Build WireGuard worker
+      # Optional component: without the worker the EXE still runs in proxy mode.
+      - name: Build the WireGuard worker (relaywg-client.exe)
         continue-on-error: true
         shell: pwsh
         run: |
           go build -trimpath -ldflags="-s -w" -o relaywg-client.exe ./winclient
-          if (-not (Test-Path relaywg-client.exe)) {
-            throw 'relaywg-client.exe was not produced'
-          }
+          if (-not (Test-Path relaywg-client.exe)) { throw 'relaywg-client.exe was not produced' }
 
-      - name: Download Wintun
+      - name: Download Wintun runtime
         id: wintun
         continue-on-error: true
         shell: pwsh
         run: |
           $zip = Join-Path $env:RUNNER_TEMP 'wintun.zip'
           Invoke-WebRequest -Uri 'https://www.wintun.net/builds/wintun-0.14.1.zip' -OutFile $zip
-
+          Write-Host ("wintun-0.14.1.zip SHA-256: " + (Get-FileHash $zip -Algorithm SHA256).Hash)
           $dir = Join-Path $env:RUNNER_TEMP 'wintun'
           Expand-Archive -Path $zip -DestinationPath $dir -Force
-
-          $dll = Get-ChildItem $dir -Recurse -Filter wintun.dll |
-            Where-Object { $_.FullName -match '[\\/]amd64[\\/]' } |
-            Select-Object -First 1
-
-          if (-not $dll) {
-            throw 'amd64 wintun.dll not found'
-          }
-
+          $dll = Get-ChildItem $dir -Recurse -Filter wintun.dll | Where-Object { $_.FullName -match '[\\/]amd64[\\/]' } | Select-Object -First 1
+          if (-not $dll) { throw 'amd64 wintun.dll not found in the Wintun archive' }
           Copy-Item $dll.FullName wintun.dll
 
       - name: Build RoutePou.exe
         shell: pwsh
         run: |
           $full = ((Test-Path relaywg-client.exe) -and (Test-Path wintun.dll))
-
-          $a = @(
-            '--noconfirm',
-            '--clean',
-            '--onefile',
-            '--windowed',
-            '--icon', 'routepou.ico',
-            '--collect-all', 'zxingcpp',
-            '--collect-all', 'PIL',
-            '--collect-all', 'cv2',
-            '--name', 'RoutePou'
-          )
-
-          if ($full) {
-            $a += @(
-              '--add-binary', 'relaywg-client.exe;.',
-              '--add-binary', 'wintun.dll;.'
-            )
-          }
-          else {
-            Write-Host '::warning::Building proxy-mode-only EXE.'
-          }
-
+          $a = @('--noconfirm', '--clean', '--onefile', '--windowed', '--icon', 'routepou.ico',
+                 '--collect-all', 'zxingcpp', '--collect-all', 'PIL', '--collect-all', 'cv2', '--name', 'RoutePou')
+          if ($full) { $a += @('--add-binary', 'relaywg-client.exe;.', '--add-binary', 'wintun.dll;.') }
+          else { Write-Host '::warning::Worker or Wintun missing: building proxy-mode-only EXE.' }
           $a += 'routepou_windows.py'
           pyinstaller @a
-
-          if ($LASTEXITCODE -ne 0) {
-            throw 'pyinstaller failed'
-          }
-
+          if ($LASTEXITCODE -ne 0) { throw 'pyinstaller failed' }
           $exe = Get-Item dist\RoutePou.exe
-
-          if ($exe.Length -lt 5MB) {
-            throw "RoutePou.exe is suspiciously small"
-          }
-
+          if ($exe.Length -lt 5MB) { throw "RoutePou.exe is suspiciously small ($($exe.Length) bytes)" }
           New-Item -ItemType Directory -Force dist-out | Out-Null
-
-          Copy-Item $exe.FullName "dist-out\RoutePou-$env:VERSION-windows-x64.exe"
-
+          Copy-Item $exe.FullName "dist-out\RoutePou-windows-x64.exe"
           $state = if ($full) { 'included' } else { 'missing' }
-
-          "windows_full_tunnel=$state" |
-            Out-File dist-out\info-windows.txt -Encoding ascii
+          "windows_full_tunnel=$state" | Out-File dist-out\info-windows.txt -Encoding ascii
+          "### Windows`n- Full Tunnel worker: **$state**" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          Get-ChildItem dist-out | Format-Table Name, Length
 
       - uses: actions/upload-artifact@v4
         with:
@@ -275,33 +232,24 @@ jobs:
             dist-out/*.exe
             dist-out/info-windows.txt
 
+  # ---------------------------------------------------------------------- Release
   release:
     name: Publish GitHub Release
-
     if: startsWith(github.ref, 'refs/tags/v')
-
-    needs:
-      - python-tests
-      - android
-      - windows
-
+    needs: [python-tests, android, windows]
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check version
+      - name: Check tag matches VERSION
         run: |
           version="$(tr -d '[:space:]' < VERSION)"
-
           if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
-            echo "::error::Tag does not match VERSION."
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match the VERSION file (v${version})."
             exit 1
           fi
-
           echo "VERSION=${version}" >> "$GITHUB_ENV"
 
       - uses: actions/download-artifact@v4
@@ -309,45 +257,39 @@ jobs:
           path: artifacts
           merge-multiple: true
 
-      - name: Generate checksums and notes
+      - name: Checksums and release notes
         run: |
           cd artifacts
-
-          rm -f ./*-debug.apk
-
+          rm -f ./*-debug.apk                       # debug builds stay workflow-only
+          grep -h . info-*.txt
           sha256sum RoutePou-* > SHA256SUMS.txt
-
           cd ..
-
-          awk -v v="## ${VERSION}" \
-            'index($0, v)==1 {p=1; next} /^## / {p=0} p' \
-            CHANGELOG.md > notes.md
-
-          ft_android="$(grep android_full_tunnel artifacts/info-android.txt | cut -d= -f2)"
-          ft_windows="$(grep windows_full_tunnel artifacts/info-windows.txt | cut -d= -f2)"
-
-          signing="$(grep android_signing artifacts/info-android.txt | cut -d= -f2)"
-
+          awk -v v="## ${VERSION}" 'index($0, v)==1 {p=1; next} /^## / {p=0} p' CHANGELOG.md > notes.md
+          ft_android="$(grep -h android_full_tunnel artifacts/info-android.txt | cut -d= -f2)"
+          ft_windows="$(grep -h windows_full_tunnel artifacts/info-windows.txt | cut -d= -f2)"
+          signing="$(grep -h android_signing artifacts/info-android.txt | cut -d= -f2)"
           {
             echo
             echo "### Downloads"
-            echo "- Android: RoutePou-${VERSION}-android.apk"
-            echo "- Windows: RoutePou-${VERSION}-windows-x64.exe"
-            echo "- Verify with SHA256SUMS.txt"
+            echo "- **Android:** \`RoutePou-android.apk\` (Android 8.0+)"
+            echo "- **Windows:** \`RoutePou-windows-x64.exe\` (Windows 10/11, 64-bit)"
+            echo "- Phone and PC must be on the same network (one Wi-Fi, or the phone's hotspot)."
+            echo "- Verify with \`SHA256SUMS.txt\`."
             echo
             echo "### Build details"
-            echo "- Android Full Tunnel: ${ft_android}"
-            echo "- Windows Full Tunnel: ${ft_windows}"
+            echo "- Full Tunnel engine — Android: ${ft_android}, Windows: ${ft_windows}"
             echo "- Android signing: ${signing}"
             echo
-            echo "> Pre-release: not yet validated on real devices."
+            echo "> Beta: not yet validated on real devices. See TESTING.md."
           } >> notes.md
+          cat notes.md
 
       - uses: softprops/action-gh-release@v2
         with:
           name: RoutePou ${{ env.VERSION }}
           body_path: notes.md
-          prerelease: ${{ contains(env.VERSION, '-') }}
+          prerelease: false
+          make_latest: true
           fail_on_unmatched_files: true
           files: |
             artifacts/RoutePou-*
