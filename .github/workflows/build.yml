@@ -124,6 +124,18 @@ jobs:
         working-directory: build/android
         run: gradle --no-daemon --stacktrace assembleDebug assembleRelease
 
+      # If Gradle fails, keep its reports so the cause can be read without scrolling the raw log.
+      - name: Keep Gradle reports (only when the build failed)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-reports
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            build/android/build/reports
+            build/android/build/outputs/logs
+
       - name: Verify and name APKs
         run: |
           set -euo pipefail
@@ -175,7 +187,7 @@ jobs:
         run: python -m pip install --upgrade pip pyinstaller zxing-cpp pillow opencv-python
 
       - name: Check the app's modules import
-        run: python -c "import pairing, wg_provision, wg_supervisor, proxy_headers, cv2, zxingcpp, PIL, tkinter, winreg; print('imports ok')"
+        run: python -c "import pairing, wg_provision, wg_supervisor, proxy_headers, cv2, zxingcpp, PIL, tkinter, tkinter.ttk, winreg; print('imports ok')"
 
       - name: Test the WireGuard worker (advisory)
         continue-on-error: true
@@ -208,12 +220,20 @@ jobs:
         run: |
           $full = ((Test-Path relaywg-client.exe) -and (Test-Path wintun.dll))
           $a = @('--noconfirm', '--clean', '--onefile', '--windowed', '--icon', 'routepou.ico',
-                 '--collect-all', 'zxingcpp', '--collect-all', 'PIL', '--collect-all', 'cv2', '--name', 'RoutePou')
+                 '--collect-all', 'zxingcpp', '--collect-all', 'PIL', '--collect-all', 'cv2',
+                 # routepou_windows.py loads tkinter.ttk with __import__(), which PyInstaller cannot see. Without this
+                 # flag the EXE stops at start-up with "No module named 'tkinter.ttk'".
+                 '--hidden-import', 'tkinter.ttk', '--name', 'RoutePou')
           if ($full) { $a += @('--add-binary', 'relaywg-client.exe;.', '--add-binary', 'wintun.dll;.') }
           else { Write-Host '::warning::Worker or Wintun missing: building proxy-mode-only EXE.' }
           $a += 'routepou_windows.py'
           pyinstaller @a
           if ($LASTEXITCODE -ne 0) { throw 'pyinstaller failed' }
+          # The EXE must contain tkinter.ttk, otherwise it fails when started (a window appears only on the user's PC).
+          $toc = Get-ChildItem build\RoutePou -Filter *.toc -ErrorAction SilentlyContinue
+          if ($toc) {
+            if (-not (Select-String -Path $toc.FullName -Pattern 'tkinter.ttk' -Quiet)) { throw 'tkinter.ttk is missing from the EXE' }
+          } else { Write-Host '::warning::PyInstaller table-of-contents files not found; skipped the tkinter.ttk check.' }
           $exe = Get-Item dist\RoutePou.exe
           if ($exe.Length -lt 5MB) { throw "RoutePou.exe is suspiciously small ($($exe.Length) bytes)" }
           New-Item -ItemType Directory -Force dist-out | Out-Null
@@ -235,7 +255,9 @@ jobs:
   # ---------------------------------------------------------------------- Release
   release:
     name: Publish GitHub Release
-    if: startsWith(github.ref, 'refs/tags/v')
+    # The tests and the Windows build gate the release. A failed Android build does not hold the
+    # Windows download back: the release is still published, with a warning, and says so in its notes.
+    if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/v') && needs.python-tests.result == 'success' && needs.windows.result == 'success' }}
     needs: [python-tests, android, windows]
     runs-on: ubuntu-latest
     permissions:
@@ -265,13 +287,20 @@ jobs:
           sha256sum RoutePou-* > SHA256SUMS.txt
           cd ..
           awk -v v="## ${VERSION}" 'index($0, v)==1 {p=1; next} /^## / {p=0} p' CHANGELOG.md > notes.md
-          ft_android="$(grep -h android_full_tunnel artifacts/info-android.txt | cut -d= -f2)"
-          ft_windows="$(grep -h windows_full_tunnel artifacts/info-windows.txt | cut -d= -f2)"
-          signing="$(grep -h android_signing artifacts/info-android.txt | cut -d= -f2)"
+          # The Android job can be missing (it failed): read its info file only if it exists.
+          ft_android="$(grep -hs android_full_tunnel artifacts/info-android.txt | cut -d= -f2 || true)"
+          ft_windows="$(grep -hs windows_full_tunnel artifacts/info-windows.txt | cut -d= -f2 || true)"
+          signing="$(grep -hs android_signing artifacts/info-android.txt | cut -d= -f2 || true)"
+          if [ -f artifacts/RoutePou-android.apk ]; then
+            android_line="- **Android:** \`RoutePou-android.apk\` (Android 8.0+)"
+          else
+            android_line="- **Android:** not included in this release because the Android build failed. See the workflow run."
+            echo "::warning::The Android APK is missing from this release (the Android job failed)."
+          fi
           {
             echo
             echo "### Downloads"
-            echo "- **Android:** \`RoutePou-android.apk\` (Android 8.0+)"
+            echo "${android_line}"
             echo "- **Windows:** \`RoutePou-windows-x64.exe\` (Windows 10/11, 64-bit)"
             echo "- Phone and PC must be on the same network (one Wi-Fi, or the phone's hotspot)."
             echo "- Verify with \`SHA256SUMS.txt\`."
