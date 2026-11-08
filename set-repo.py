@@ -1,4 +1,4 @@
-"""Point the links in README.md, README.fa.md, index.html and app.js at your own GitHub repository.
+"""Point the links in README.md, README.fa.md, index.html, site.js and PUBLISHING.md at another GitHub repository.
 
 Usage:  python set-repo.py YourName/YourRepo
 """
@@ -6,8 +6,8 @@ import re
 import sys
 from pathlib import Path
 
-OLD_SLUG = "Mahdi-mortazavi/RoutePou"
-FILES = ("README.md", "README.fa.md", "index.html", "app.js")
+OLD_SLUG = "farrokhzad743-dot/RoutePouNew"
+FILES = ("README.md", "README.fa.md", "index.html", "site.js", "PUBLISHING.md")
 
 
 def pages_host(slug: str) -> str:

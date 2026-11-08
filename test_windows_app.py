@@ -45,3 +45,21 @@ def test_worker_reports_peer_events_and_fails_closed():
     worker = read("winclient/main.go")
     assert 'peerLostLine = "PEER-LOST"' in worker and 'peerBackLine = "PEER-BACK"' in worker
     assert "refusing full tunnel because leak protection could not be installed" in worker
+
+
+def test_modules_loaded_with_dunder_import_are_declared_as_pyinstaller_hidden_imports():
+    """PyInstaller only follows plain `import` statements. routepou_windows.py once loaded tkinter.ttk with
+    __import__(), and the built EXE stopped at start-up with "No module named 'tkinter.ttk'"."""
+    import re
+    from pathlib import Path
+    root = Path(__file__).resolve().parent
+    source = (root / "routepou_windows.py").read_text(encoding="utf-8")
+    workflow = (root / ".github" / "workflows" / "build.yml").read_text(encoding="utf-8")
+    dynamic = set(re.findall(r"__import__\(\s*[\"']([\w.]+)[\"']", source))
+    dynamic |= set(re.findall(r"importlib\.import_module\(\s*[\"']([\w.]+)[\"']", source))
+    assert "tkinter.ttk" in dynamic  # keeps this test honest if the code is ever changed
+    for module in dynamic:
+        top = module.split(".")[0]
+        static = re.search(rf"^\s*(?:import|from)\s+{re.escape(module)}\b", source, re.M)
+        declared = f"'--hidden-import', '{module}'" in workflow or f"'--collect-all', '{top}'" in workflow
+        assert static or declared, f"{module} would be missing from the EXE"

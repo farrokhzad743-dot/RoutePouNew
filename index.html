@@ -2,176 +2,301 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.ipify.org https://ipwho.is; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
-<title>RoutePou</title>
-<meta name="description" content="RoutePou: اینترنت و VPN گوشی اندروید را با اسکن یک QR روی ویندوز داشته باش. Share your Android phone's internet and VPN with a Windows PC by scanning a QR code.">
-<meta name="theme-color" content="#15101A">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="RoutePou">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RoutePou | دانلود برای ویندوز و اندروید</title>
+<meta name="description" content="اینترنت و VPN گوشی اندروید را روی ویندوز داشته باش. RoutePou for Windows and Android: your phone's internet on your PC, open source, no root.">
+<meta name="theme-color" content="#fff7f4">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self'; font-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'">
 <meta property="og:type" content="website">
-<meta property="og:title" content="RoutePou">
-<meta property="og:description" content="Your phone's internet, on your PC. اینترنت گوشی‌ات، روی کامپیوترت.">
-<meta property="og:image" content="https://mahdi-mortazavi.github.io/RoutePou/og-image.png">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<meta property="og:site_name" content="RoutePou">
+<meta property="og:title" content="RoutePou | اینترنت گوشی‌ات، روی کامپیوترت">
+<meta property="og:description" content="Download RoutePou for Windows and Android. دانلود برای ویندوز و اندروید.">
+<meta property="og:url" content="https://routepou.pouone.ir/">
+<meta property="og:image" content="https://routepou.pouone.ir/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://routepou.pouone.ir/">
+<link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="stylesheet" href="app.css">
+<link rel="preload" href="Estedad-ExtraBold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="site.css">
 </head>
 <body>
-<header class="top wrap">
-  <a class="brand" href="./" aria-label="RoutePou"><img src="icon-192.png" alt="" width="32" height="32"><span>RoutePou</span></a>
-  <div class="top-actions">
-    <button class="chip" id="langBtn" type="button" data-i18n="nav.lang" lang="en">English</button>
-    <button class="chip" id="themeBtn" type="button" data-i18n-aria="nav.theme" aria-label="تغییر تم"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path class="ico" d="M12 3a9 9 0 1 0 9 9c0-.5 0-.9-.1-1.3A6 6 0 0 1 13.3 3.1 9 9 0 0 0 12 3z"/></svg></button>
-    <button class="chip chip-install" id="installBtn" type="button" data-i18n="nav.install">نصب وب‌اپ</button>
-  </div>
+<svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- Clay look: a soft highlight on the top-left edge, a soft shade on the bottom-right edge -->
+    <filter id="clay" filterUnits="userSpaceOnUse" x="-12" y="-12" width="144" height="144" color-interpolation-filters="sRGB">
+      <feOffset in="SourceAlpha" dx="6" dy="6" result="o1"/>
+      <feGaussianBlur in="o1" stdDeviation="4.5" result="b1"/>
+      <feComposite in="SourceAlpha" in2="b1" operator="out" result="edgeHL"/>
+      <feFlood flood-color="#ffffff" flood-opacity=".9"/>
+      <feComposite in2="edgeHL" operator="in" result="hl"/>
+      <feOffset in="SourceAlpha" dx="-5" dy="-7" result="o2"/>
+      <feGaussianBlur in="o2" stdDeviation="5" result="b2"/>
+      <feComposite in="SourceAlpha" in2="b2" operator="out" result="edgeSH"/>
+      <feFlood flood-color="#1a1a40" flood-opacity=".26"/>
+      <feComposite in2="edgeSH" operator="in" result="sh"/>
+      <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="sh"/><feMergeNode in="hl"/></feMerge>
+    </filter>
+    <filter id="clay-s" filterUnits="userSpaceOnUse" x="-12" y="-12" width="144" height="144" color-interpolation-filters="sRGB">
+      <feOffset in="SourceAlpha" dx="2.6" dy="2.6" result="o1"/>
+      <feGaussianBlur in="o1" stdDeviation="2" result="b1"/>
+      <feComposite in="SourceAlpha" in2="b1" operator="out" result="edgeHL"/>
+      <feFlood flood-color="#ffffff" flood-opacity=".9"/>
+      <feComposite in2="edgeHL" operator="in" result="hl"/>
+      <feOffset in="SourceAlpha" dx="-2.4" dy="-3" result="o2"/>
+      <feGaussianBlur in="o2" stdDeviation="2.2" result="b2"/>
+      <feComposite in="SourceAlpha" in2="b2" operator="out" result="edgeSH"/>
+      <feFlood flood-color="#1a1a40" flood-opacity=".22"/>
+      <feComposite in2="edgeSH" operator="in" result="sh"/>
+      <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="sh"/><feMergeNode in="hl"/></feMerge>
+    </filter>
+    <!-- a screen is pressed IN, so light and shade swap sides -->
+    <filter id="clay-in" filterUnits="userSpaceOnUse" x="-12" y="-12" width="144" height="144" color-interpolation-filters="sRGB">
+      <feOffset in="SourceAlpha" dx="-3" dy="-4" result="o1"/>
+      <feGaussianBlur in="o1" stdDeviation="3" result="b1"/>
+      <feComposite in="SourceAlpha" in2="b1" operator="out" result="edgeHL"/>
+      <feFlood flood-color="#ffffff" flood-opacity=".85"/>
+      <feComposite in2="edgeHL" operator="in" result="hl"/>
+      <feOffset in="SourceAlpha" dx="3" dy="4" result="o2"/>
+      <feGaussianBlur in="o2" stdDeviation="3.2" result="b2"/>
+      <feComposite in="SourceAlpha" in2="b2" operator="out" result="edgeSH"/>
+      <feFlood flood-color="#1a1a40" flood-opacity=".3"/>
+      <feComposite in2="edgeSH" operator="in" result="sh"/>
+      <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="sh"/><feMergeNode in="hl"/></feMerge>
+    </filter>
+    <filter id="clay-a" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+      <feOffset in="SourceAlpha" dx="2.4" dy="2.4" result="o1"/><feGaussianBlur in="o1" stdDeviation="1.8" result="b1"/>
+      <feComposite in="SourceAlpha" in2="b1" operator="out" result="edgeHL"/><feFlood flood-color="#ffffff" flood-opacity=".9"/><feComposite in2="edgeHL" operator="in" result="hl"/>
+      <feOffset in="SourceAlpha" dx="-2" dy="-2.6" result="o2"/><feGaussianBlur in="o2" stdDeviation="2" result="b2"/>
+      <feComposite in="SourceAlpha" in2="b2" operator="out" result="edgeSH"/><feFlood flood-color="#1a1a40" flood-opacity=".22"/><feComposite in2="edgeSH" operator="in" result="sh"/>
+      <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="sh"/><feMergeNode in="hl"/></feMerge>
+    </filter>
+    <filter id="gshadow" x="-30%" y="-100%" width="160%" height="300%"><feGaussianBlur stdDeviation="4.5"/></filter>
+
+    <linearGradient id="g-blue"   x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fb7ff"/><stop offset="1" stop-color="#3f6fe3"/></linearGradient>
+    <linearGradient id="g-green"  x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8ff0c4"/><stop offset="1" stop-color="#25a872"/></linearGradient>
+    <linearGradient id="g-coral"  x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9aa2"/><stop offset="1" stop-color="#e02c40"/></linearGradient>
+    <linearGradient id="g-purple" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c9b6ff"/><stop offset="1" stop-color="#7a5af0"/></linearGradient>
+    <linearGradient id="g-amber"  x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#f59a23"/></linearGradient>
+    <linearGradient id="g-sky"    x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a5e6ff"/><stop offset="1" stop-color="#2ea6e0"/></linearGradient>
+    <linearGradient id="g-mint"   x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b9f3da"/><stop offset="1" stop-color="#3cc596"/></linearGradient>
+    <linearGradient id="g-white"  x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e3ecff"/></linearGradient>
+    <linearGradient id="g-scr-blue"  x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eaf2ff"/><stop offset="1" stop-color="#bcd3fb"/></linearGradient>
+    <linearGradient id="g-scr-green" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eafff5"/><stop offset="1" stop-color="#b6ecd3"/></linearGradient>
+
+    <!-- puffy download arrow used on both device screens -->
+    <g id="arrow-dl">
+      <path d="M-7,-15 H7 V-1 H15 L0,15 L-15,-1 H-7 Z" fill="url(#g-white)" stroke="url(#g-white)" stroke-width="5" stroke-linejoin="round" filter="url(#clay-a)"/>
+    </g>
+
+    <symbol id="ic-monitor" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="111" rx="38" ry="5.5" fill="#2c4bb0" opacity=".28" filter="url(#gshadow)"/>
+      <rect x="50" y="78" width="20" height="24" rx="7" fill="url(#g-blue)" filter="url(#clay-s)"/>
+      <rect x="32" y="95" width="56" height="13" rx="6.5" fill="url(#g-blue)" filter="url(#clay-s)"/>
+      <rect x="9" y="10" width="102" height="74" rx="22" fill="url(#g-blue)" filter="url(#clay)"/>
+      <rect x="21" y="22" width="78" height="50" rx="13" fill="url(#g-scr-blue)" filter="url(#clay-in)"/>
+      <g transform="translate(60 47) scale(.9)"><use href="#arrow-dl"/></g>
+    </symbol>
+
+    <symbol id="ic-phone" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="112" rx="26" ry="5" fill="#13704c" opacity=".28" filter="url(#gshadow)"/>
+      <rect x="28" y="4" width="64" height="106" rx="20" fill="url(#g-green)" filter="url(#clay)"/>
+      <rect x="37" y="18" width="46" height="76" rx="11" fill="url(#g-scr-green)" filter="url(#clay-in)"/>
+      <circle cx="60" cy="11" r="2.6" fill="#0d6a47" opacity=".55"/>
+      <g transform="translate(60 56) scale(.9)"><use href="#arrow-dl"/></g>
+      <rect x="50" y="100" width="20" height="3.6" rx="1.8" fill="#ffffff" opacity=".85"/>
+    </symbol>
+
+    <symbol id="ic-wifi" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="112" rx="28" ry="5" fill="#16658f" opacity=".26" filter="url(#gshadow)"/>
+      <path d="M16,52 A62,62 0 0 1 104,52" fill="none" stroke="url(#g-sky)" stroke-width="14" stroke-linecap="round" filter="url(#clay-s)"/>
+      <path d="M30,67 A42,42 0 0 1 90,67" fill="none" stroke="url(#g-sky)" stroke-width="14" stroke-linecap="round" filter="url(#clay-s)"/>
+      <path d="M44,82 A22,22 0 0 1 76,82" fill="none" stroke="url(#g-sky)" stroke-width="14" stroke-linecap="round" filter="url(#clay-s)"/>
+      <circle cx="60" cy="98" r="9.5" fill="url(#g-sky)" filter="url(#clay-s)"/>
+    </symbol>
+
+    <symbol id="ic-play" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="112" rx="34" ry="5.5" fill="#a3182a" opacity=".26" filter="url(#gshadow)"/>
+      <circle cx="60" cy="58" r="48" fill="url(#g-coral)" filter="url(#clay)"/>
+      <path d="M50,38 L82,58 L50,78 Z" fill="url(#g-white)" stroke="url(#g-white)" stroke-width="8" stroke-linejoin="round" filter="url(#clay-s)"/>
+    </symbol>
+
+    <symbol id="ic-qr" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="112" rx="36" ry="5.5" fill="#4b2fb0" opacity=".26" filter="url(#gshadow)"/>
+      <rect x="12" y="8" width="96" height="96" rx="26" fill="url(#g-purple)" filter="url(#clay)"/>
+      <rect x="24" y="20" width="72" height="72" rx="14" fill="url(#g-white)" filter="url(#clay-in)"/>
+      <rect x="31" y="27" width="22" height="22" rx="6" fill="#6a49e6"/><rect x="36" y="32" width="12" height="12" rx="3" fill="#f4efff"/>
+      <rect x="67" y="27" width="22" height="22" rx="6" fill="#6a49e6"/><rect x="72" y="32" width="12" height="12" rx="3" fill="#f4efff"/>
+      <rect x="31" y="63" width="22" height="22" rx="6" fill="#6a49e6"/><rect x="36" y="68" width="12" height="12" rx="3" fill="#f4efff"/>
+      <rect x="64" y="62" width="10" height="10" rx="3" fill="#6a49e6"/>
+      <rect x="79" y="66" width="10" height="10" rx="3" fill="#6a49e6"/>
+      <rect x="66" y="77" width="10" height="10" rx="3" fill="#6a49e6"/>
+      <rect x="80" y="79" width="9" height="9" rx="3" fill="#6a49e6"/>
+    </symbol>
+
+    <symbol id="ic-shield" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="113" rx="28" ry="4.5" fill="#12704c" opacity=".26" filter="url(#gshadow)"/>
+      <path d="M60,8 L100,23 V56 C100,83 82,100 60,110 C38,100 20,83 20,56 V23 Z" fill="url(#g-mint)" stroke="url(#g-mint)" stroke-width="6" stroke-linejoin="round" filter="url(#clay)"/>
+      <path d="M41,58 L55,72 L80,44" fill="none" stroke="url(#g-white)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" filter="url(#clay-s)"/>
+    </symbol>
+
+    <symbol id="ic-code" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="112" rx="36" ry="5.5" fill="#1b6f93" opacity=".26" filter="url(#gshadow)"/>
+      <rect x="10" y="12" width="100" height="92" rx="28" fill="url(#g-sky)" filter="url(#clay)"/>
+      <path d="M48,40 L30,58 L48,76 M72,40 L90,58 L72,76 M65,34 L55,82" fill="none" stroke="url(#g-white)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" filter="url(#clay-s)"/>
+    </symbol>
+
+    <symbol id="ic-bolt" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="113" rx="26" ry="4.5" fill="#b3600a" opacity=".26" filter="url(#gshadow)"/>
+      <path d="M70,10 L28,66 H56 L48,108 L94,48 H64 Z" fill="url(#g-amber)" stroke="url(#g-amber)" stroke-width="8" stroke-linejoin="round" filter="url(#clay)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="bg" aria-hidden="true"><i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i></div>
+
+<header class="top" id="top">
+  <a class="brand" href="#top" aria-label="RoutePou">
+    <img src="logo.png" alt="" width="40" height="40">
+    <span>RoutePou</span>
+  </a>
+  <button id="langBtn" class="pill" type="button" aria-label="Language / زبان">
+    <span data-l="fa" lang="en">English</span><span data-l="en" lang="fa">فارسی</span>
+  </button>
 </header>
 
 <main>
-<section class="hero wrap">
-  <svg class="art" viewBox="0 0 520 230" role="img" data-i18n-aria="art.label" aria-label="نمودار: گوشی از مسیر امن به کامپیوتر وصل می‌شود">
-    <path class="art-track" d="M126 128C190 30 270 30 336 120" fill="none"/>
-    <path class="art-line" pathLength="1" d="M126 128C190 30 270 30 336 120" fill="none"/>
-    <g class="art-phone">
-      <rect class="art-panel" x="38" y="42" width="92" height="162" rx="18"/>
-      <rect class="art-screen" x="46" y="56" width="76" height="134" rx="10"/>
-      <rect class="art-notch" x="72" y="48" width="24" height="4" rx="2"/>
-      <image href="icon-192.png" x="62" y="88" width="44" height="44"/>
-      <rect class="art-bar" x="58" y="148" width="52" height="6" rx="3"/>
-      <rect class="art-bar dim" x="66" y="162" width="36" height="6" rx="3"/>
-    </g>
-    <g class="art-pc">
-      <rect class="art-panel" x="334" y="62" width="150" height="104" rx="10"/>
-      <rect class="art-screen" x="342" y="70" width="134" height="88" rx="5"/>
-      <circle class="art-ok" cx="409" cy="104" r="16"/>
-      <path class="art-tick" d="M401 104l6 6 11-12" fill="none"/>
-      <rect class="art-bar" x="372" y="134" width="74" height="6" rx="3"/>
-      <path class="art-panel" d="M318 172h182l-10 14H328z"/>
-    </g>
-    <g class="art-lock">
-      <circle class="art-lock-bg" cx="236" cy="57" r="19"/>
-      <rect class="art-lock-body" x="228" y="56" width="16" height="12" rx="2.5"/>
-      <path class="art-lock-arc" d="M231.5 56v-4a4.5 4.5 0 0 1 9 0v4" fill="none"/>
-    </g>
-  </svg>
+  <section class="wrap hero">
+    <div class="hero-text">
+      <p class="tag intro"><span data-l="fa" lang="fa">نسخهٔ بتا</span><span data-l="en" lang="en">Beta</span></p>
+      <h1 class="intro d1">
+        <span data-l="fa" lang="fa">اینترنت گوشی‌ات،<br><span class="grad">روی کامپیوترت</span></span>
+        <span data-l="en" lang="en">Your phone's internet,<br><span class="grad">on your PC.</span></span>
+      </h1>
+      <p class="lead intro d2">
+        <span data-l="fa" lang="fa">گوشی و کامپیوتر را به یک وای‌فای وصل کن، یک QR را اسکن کن، و اینترنت (و VPN) گوشی روی ویندوز باشد. بدون روت، بدون حساب، بدون سرور.</span>
+        <span data-l="en" lang="en">Put your phone and PC on the same Wi-Fi, scan one QR code, and your phone's internet (and VPN) is on Windows. No root, no account, no server.</span>
+      </p>
+      <div class="cta intro d3">
+        <a class="clay-btn primary" href="#download">
+          <svg class="gl" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>
+          <span data-l="fa" lang="fa">دانلود</span><span data-l="en" lang="en">Download</span>
+        </a>
+        <a class="clay-btn ghost" href="#how">
+          <span data-l="fa" lang="fa">چطور کار می‌کند؟</span><span data-l="en" lang="en">How it works</span>
+        </a>
+      </div>
+    </div>
 
-  <h1 data-i18n="hero.title">اینترنت و VPN گوشی‌ات، روی کامپیوترت</h1>
-  <p class="lead" data-i18n="hero.sub">گوشی و ویندوز را به یک وای‌فای وصل کن، VPN گوشی را روشن کن و یک QR اسکن کن؛ ویندوزت از همان اینترنت و VPN استفاده می‌کند. هات‌اسپات لازم نیست.</p>
-  <ul class="pills">
-    <li data-i18n="pill.root">بدون روت</li>
-    <li data-i18n="pill.account">بدون حساب کاربری</li>
-    <li data-i18n="pill.server">بدون سرور</li>
-    <li data-i18n="pill.open">متن‌باز</li>
-  </ul>
+    <div class="art intro d2" aria-hidden="true">
+      <svg class="link" viewBox="0 0 440 380" fill="none">
+        <path class="rail" d="M112 176C104 96 138 66 182 78"/>
+        <path class="pulse" pathLength="100" d="M112 176C104 96 138 66 182 78"/>
+      </svg>
+      <svg class="a-monitor"><use href="#ic-monitor"/></svg>
+      <svg class="a-phone"><use href="#ic-phone"/></svg>
+      <svg class="a-shield"><use href="#ic-shield"/></svg>
+      <svg class="a-wifi"><use href="#ic-wifi"/></svg>
+    </div>
+  </section>
 
-  <div class="cta">
-    <a class="btn win" data-link="win" href="https://github.com/Mahdi-mortazavi/RoutePou/releases/latest/download/RoutePou-windows-x64.exe">
-      <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path class="ico" d="M12 3v11m0 0-4-4m4 4 4-4M5 19h14"/></svg>
-      <span class="btn-text"><span class="btn-main" data-i18n="dl.win">دانلود برای ویندوز</span><span class="btn-sub" data-i18n="dl.win.sub">ویندوز ۱۰ و ۱۱، ۶۴ بیتی</span></span>
-      <span class="sug" data-i18n="dl.suggested">مناسب این دستگاه</span>
-    </a>
-    <a class="btn and" data-link="and" href="https://github.com/Mahdi-mortazavi/RoutePou/releases/latest/download/RoutePou-android.apk">
-      <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path class="ico" d="M12 3v11m0 0-4-4m4 4 4-4M5 19h14"/></svg>
-      <span class="btn-text"><span class="btn-main" data-i18n="dl.and">دانلود برای اندروید</span><span class="btn-sub" data-i18n="dl.and.sub">اندروید ۸ یا بالاتر</span></span>
-      <span class="sug" data-i18n="dl.suggested">مناسب این دستگاه</span>
-    </a>
-    <button class="btn install" id="installHero" type="button" data-i18n="nav.install">نصب وب‌اپ</button>
-  </div>
+  <section class="wrap dl" id="download">
+    <div class="sec-head reveal">
+      <h2><span data-l="fa" lang="fa">دانلود</span><span data-l="en" lang="en">Download</span></h2>
+      <p><span data-l="fa" lang="fa">هر دو فایل مستقیم از آخرین نسخهٔ منتشرشده در GitHub می‌آیند.</span><span data-l="en" lang="en">Both files come straight from the latest release on GitHub.</span></p>
+    </div>
+    <div class="cards">
+      <article class="card win reveal">
+        <svg class="ico"><use href="#ic-monitor"/></svg>
+        <h3><span data-l="fa" lang="fa">ویندوز</span><span data-l="en" lang="en">Windows</span></h3>
+        <p class="spec"><span data-l="fa" lang="fa">ویندوز ۱۰ و ۱۱ · ۶۴ بیتی · فایل EXE</span><span data-l="en" lang="en">Windows 10 and 11 · 64-bit · EXE file</span></p>
+        <a class="dl-btn" href="https://github.com/farrokhzad743-dot/RoutePouNew/releases/latest/download/RoutePou-windows-x64.exe" rel="noopener">
+          <svg class="gl" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>
+          <span data-l="fa" lang="fa">دانلود برای ویندوز</span><span data-l="en" lang="en">Download for Windows</span>
+        </a>
+        <p class="hint"><span data-l="fa" lang="fa">برنامه امضای دیجیتال ندارد. اگر SmartScreen هشدار داد، «More info» و بعد «Run anyway» را بزن.</span><span data-l="en" lang="en">The app is not code-signed. If SmartScreen warns you, choose “More info”, then “Run anyway”.</span></p>
+      </article>
 
-  <div class="notes">
-    <p class="note" data-i18n="dl.beta">این نسخه بتا است: کد تست خودکار دارد، اما اتصال واقعی دو دستگاه هنوز کامل آزمایش نشده.</p>
-    <p class="note n-win" data-i18n="dl.smartscreen">فایل ویندوز امضای دیجیتال ندارد. اگر SmartScreen هشدار داد، «More info» و بعد «Run anyway» را بزن.</p>
-    <p class="note n-ios" data-i18n="dl.ios">آیفون: اپل به هیچ برنامه‌ای اجازه نمی‌دهد اینترنت یا VPN گوشی را با کامپیوتر به اشتراک بگذارد. روی آیفون می‌توانی همین وب‌اپ را برای راهنما و تست اتصال نصب کنی.</p>
-    <p class="note n-other" data-i18n="dl.other">macOS و لینوکس هنوز پشتیبانی نمی‌شوند. این وب‌اپ روی همه‌جا کار می‌کند.</p>
-  </div>
-</section>
+      <article class="card and reveal" data-d="1">
+        <svg class="ico"><use href="#ic-phone"/></svg>
+        <h3><span data-l="fa" lang="fa">اندروید</span><span data-l="en" lang="en">Android</span></h3>
+        <p class="spec"><span data-l="fa" lang="fa">اندروید ۸ یا جدیدتر · فایل APK</span><span data-l="en" lang="en">Android 8 or newer · APK file</span></p>
+        <a class="dl-btn" href="https://github.com/farrokhzad743-dot/RoutePouNew/releases/latest/download/RoutePou-android.apk" rel="noopener">
+          <svg class="gl" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>
+          <span data-l="fa" lang="fa">دانلود برای اندروید</span><span data-l="en" lang="en">Download for Android</span>
+        </a>
+        <p class="hint"><span data-l="fa" lang="fa">اندروید ممکن است اجازهٔ «نصب از منبع ناشناس» را برای مرورگر یا مدیر فایل بخواهد.</span><span data-l="en" lang="en">Android may ask you to allow “install unknown apps” for your browser or file manager.</span></p>
+      </article>
+    </div>
+    <p class="verify reveal">
+      <a href="https://github.com/farrokhzad743-dot/RoutePouNew/releases" rel="noopener"><span data-l="fa" lang="fa">همهٔ نسخه‌ها و چک‌سام SHA-256</span><span data-l="en" lang="en">All releases and SHA-256 checksums</span></a>
+    </p>
+  </section>
 
-<section class="wrap block" id="how">
-  <h2 data-i18n="how.title">چطور کار می‌کند</h2>
-  <ol class="route">
-    <li><span class="n" aria-hidden="true"></span><h3 data-i18n="how.1.t">هر دو را به یک وای‌فای وصل کن</h3><p data-i18n="how.1.b">گوشی و ویندوز را به یک وای‌فای (یک روتر) وصل کن. وای‌فای مشترک نداری؟ هات‌اسپات گوشی را روشن کن و ویندوز را به آن وصل کن. اگر می‌خواهی ترافیک از VPN بگذرد، VPN گوشی را همین حالا روشن کن.</p></li>
-    <li><span class="n" aria-hidden="true"></span><h3 data-i18n="how.2.t">شروع اشتراک‌گذاری</h3><p data-i18n="how.2.b">در RoutePou اندروید «شروع اشتراک‌گذاری» را بزن. یک QR نمایش داده می‌شود؛ آن را محرمانه نگه دار.</p></li>
-    <li><span class="n" aria-hidden="true"></span><h3 data-i18n="how.3.t">QR را اسکن کن</h3><p data-i18n="how.3.b">در RoutePou ویندوز «اسکن با دوربین» را بزن. اتصال خودکار برقرار می‌شود و ترافیک از گوشی بیرون می‌رود.</p></li>
-  </ol>
-</section>
+  <section class="wrap how" id="how">
+    <div class="sec-head reveal">
+      <h2><span data-l="fa" lang="fa">چطور کار می‌کند؟</span><span data-l="en" lang="en">How it works</span></h2>
+    </div>
+    <ol class="steps">
+      <li class="clay reveal">
+        <svg class="ico sm"><use href="#ic-wifi"/></svg>
+        <h3><span data-l="fa" lang="fa">یک شبکه</span><span data-l="en" lang="en">One network</span></h3>
+        <p><span data-l="fa" lang="fa">گوشی و کامپیوتر را به یک وای‌فای وصل کن، یا هات‌اسپات گوشی را روشن کن. اگر می‌خواهی ترافیک از VPN بگذرد، VPN گوشی را روشن کن.</span><span data-l="en" lang="en">Join the same Wi-Fi, or turn on the phone's hotspot. Turn on the phone's VPN if you want traffic to go through it.</span></p>
+      </li>
+      <li class="clay reveal" data-d="1">
+        <svg class="ico sm"><use href="#ic-play"/></svg>
+        <h3><span data-l="fa" lang="fa">شروع اشتراک‌گذاری</span><span data-l="en" lang="en">Start sharing</span></h3>
+        <p><span data-l="fa" lang="fa">در RoutePou اندروید «شروع اشتراک‌گذاری» را بزن. یک کد QR نمایش داده می‌شود.</span><span data-l="en" lang="en">Open RoutePou on the phone and tap Start sharing. A QR code appears.</span></p>
+      </li>
+      <li class="clay reveal" data-d="2">
+        <svg class="ico sm"><use href="#ic-qr"/></svg>
+        <h3><span data-l="fa" lang="fa">اسکن در ویندوز</span><span data-l="en" lang="en">Scan on Windows</span></h3>
+        <p><span data-l="fa" lang="fa">در RoutePou ویندوز QR را با دوربین اسکن کن. اتصال خودکار برقرار می‌شود.</span><span data-l="en" lang="en">Scan the QR with the camera in RoutePou for Windows. The connection starts by itself.</span></p>
+      </li>
+    </ol>
+  </section>
 
-<section class="wrap block" id="modes">
-  <h2 data-i18n="modes.title">دو حالت اتصال</h2>
-  <div class="modes">
-    <article>
-      <h3><span data-i18n="modes.proxy">پروکسی امن</span> <span class="tag" data-i18n="modes.proxy.tag">بتا</span></h3>
-      <p data-i18n="modes.proxy.b">ویندوز یک پروکسی روی همین کامپیوتر باز می‌کند و ترافیک را با TLS به گوشی می‌فرستد. گواهی هر گوشی جداست و ویندوز فقط همان را می‌پذیرد. برنامه‌هایی که از پروکسی سیستم پیروی می‌کنند کار می‌کنند.</p>
-    </article>
-    <article>
-      <h3><span data-i18n="modes.tunnel">تونل کامل WireGuard</span> <span class="tag warn" data-i18n="modes.tunnel.tag">آزمایشی</span></h3>
-      <p data-i18n="modes.tunnel.b">یک آداپتر مجازی ساخته می‌شود و همهٔ ترافیک (TCP، UDP و DNS) از گوشی می‌گذرد. اگر ارتباط با گوشی قطع شود، ترافیک مسدود می‌ماند و از شبکهٔ خود ویندوز نشت نمی‌کند. به دسترسی Administrator نیاز دارد.</p>
-    </article>
-  </div>
-</section>
+  <section class="wrap why">
+    <div class="feats">
+      <div class="feat clay reveal">
+        <svg class="ico xs"><use href="#ic-shield"/></svg>
+        <div><h3><span data-l="fa" lang="fa">امن</span><span data-l="en" lang="en">Encrypted</span></h3>
+        <p><span data-l="fa" lang="fa">ارتباط با TLS و گواهیِ اختصاصی هر گوشی. QR مثل رمز عبور است؛ آن را به کسی نشان نده.</span><span data-l="en" lang="en">TLS pinned to your phone's own certificate. The QR works like a password: keep it private.</span></p></div>
+      </div>
+      <div class="feat clay reveal" data-d="1">
+        <svg class="ico xs"><use href="#ic-code"/></svg>
+        <div><h3><span data-l="fa" lang="fa">متن‌باز</span><span data-l="en" lang="en">Open source</span></h3>
+        <p><span data-l="fa" lang="fa">لایسنس GPL-3.0؛ کد کامل و ساخت خودکار برنامه‌ها در GitHub.</span><span data-l="en" lang="en">GPL-3.0 licensed. Full source code and automated builds on GitHub.</span></p></div>
+      </div>
+      <div class="feat clay reveal" data-d="2">
+        <svg class="ico xs"><use href="#ic-bolt"/></svg>
+        <div><h3><span data-l="fa" lang="fa">ساده</span><span data-l="en" lang="en">Simple</span></h3>
+        <p><span data-l="fa" lang="fa">بدون روت، بدون حساب کاربری و بدون نیاز به هات‌اسپات.</span><span data-l="en" lang="en">No root, no account, and no hotspot required.</span></p></div>
+      </div>
+    </div>
 
-<section class="wrap block" id="check">
-  <h2 data-i18n="check.title">تست اتصال</h2>
-  <p class="intro" data-i18n="check.intro">ببین ترافیک این دستگاه از کجا بیرون می‌رود. روی کامپیوتر، پیش از وصل‌شدن به RoutePou «ذخیره» را بزن؛ بعد از اتصال دوباره بررسی کن. اگر نشانی عوض شود، مسیر کار می‌کند.</p>
-  <div class="meter">
-    <dl class="reading" id="readBefore" hidden>
-      <dt data-i18n="check.before">قبل</dt>
-      <dd class="ip" id="bIp">-</dd>
-      <dd class="sub" id="bWhere"></dd>
-    </dl>
-    <dl class="reading now" id="readNow">
-      <dt data-i18n="check.now">حالا</dt>
-      <dd class="ip" id="nIp">-</dd>
-      <dd class="sub" id="nWhere"></dd>
-      <dd class="sub" id="nLat"></dd>
-    </dl>
-  </div>
-  <p class="verdict" id="verdict" role="status" aria-live="polite" data-state="idle" data-i18n="check.idle">هنوز بررسی نشده</p>
-  <div class="actions">
-    <button class="btn solid" id="btnCheck" type="button" data-i18n="check.run">بررسی کن</button>
-    <button class="btn ghost" id="btnSave" type="button" data-i18n="check.save" disabled>ذخیره به‌عنوان «قبل»</button>
-    <button class="btn ghost" id="btnClear" type="button" data-i18n="check.clear" hidden>پاک‌کردن «قبل»</button>
-  </div>
-  <p class="fine" data-i18n="check.privacy">این تست نشانی IP تو را از api.ipify.org و ipwho.is می‌پرسد. نتیجه فقط در همین مرورگر می‌ماند و RoutePou چیزی ذخیره نمی‌کند.</p>
-</section>
-
-<section class="wrap block" id="why">
-  <h2 data-i18n="why.title">چرا فقط یک وب‌سایت نیست؟</h2>
-  <p data-i18n="why.b">مرورگر نمی‌تواند روی گوشی پورت باز کند، گوشی را در شبکه پیدا کند یا روی ویندوز آداپتر شبکه بسازد. برای همین اشتراک اینترنت به برنامهٔ اندروید و برنامهٔ ویندوز نیاز دارد. این وب‌اپ جای آن‌ها را نمی‌گیرد؛ دانلود، راهنما و تست اتصال را در هر دستگاهی در دسترس می‌گذارد، حتی آفلاین.</p>
-</section>
-
-<section class="wrap block" id="faq">
-  <h2 data-i18n="faq.title">پرسش‌های پرتکرار</h2>
-  <details><summary data-i18n="faq.1.q">به روت نیاز دارد؟</summary><p data-i18n="faq.1.a">نه. گوشی لازم نیست روت باشد و حسابی هم نمی‌خواهد. ترافیک مستقیم بین دو دستگاه و روی شبکهٔ خودتان می‌رود.</p></details>
-  <details><summary data-i18n="faq.2.q">با VPN گوشی کار می‌کند؟</summary><p data-i18n="faq.2.a">طراحی برای همین است: اتصال‌ها از خود گوشی بیرون می‌روند و مسیر پیش‌فرض (و VPN) گوشی را می‌گیرند. اگر VPN شما «Split tunneling» دارد، RoutePou را از VPN مستثنی نکنید. هنوز روی دستگاه واقعی کامل آزمایش نشده؛ با «تست اتصال» بالا مطمئن شوید.</p></details>
-  <details><summary data-i18n="faq.3.q">QR چقدر حساس است؟</summary><p data-i18n="faq.3.a">مثل رمز عبور است. هر کس آن را ببیند می‌تواند از اینترنت گوشی تو استفاده کند. QR تونل کامل بعد از ۵ دقیقه منقضی می‌شود و «ساخت کلید جدید» همهٔ جفت‌سازی‌های قبلی را باطل می‌کند.</p></details>
-  <details><summary data-i18n="faq.4.q">آیفون چطور؟</summary><p data-i18n="faq.4.a">اپل راهی به برنامه‌ها نمی‌دهد که ترافیک کامپیوتر را از اینترنت یا VPN آیفون عبور دهند؛ نه با برنامهٔ معمولی و نه با وب‌اپ. وب‌اپ RoutePou روی آیفون فقط راهنما و تست اتصال است.</p></details>
-  <details><summary data-i18n="faq.6.q">ویندوز می‌تواند روی شبکهٔ دیگری باشد؟</summary><p data-i18n="faq.6.a">هنوز نه. دو دستگاه باید همدیگر را مستقیم ببینند: یک وای‌فای مشترک یا هات‌اسپات گوشی. گوشیِ فقط روی اینترنت موبایل از بیرون در دسترس نیست و QR تنها اطلاعات می‌دهد، اتصال نمی‌سازد؛ برای شبکه‌های جدا یک سرور واسط لازم است که فعلاً در RoutePou نیست.</p></details>
-  <details><summary data-i18n="faq.5.q">رایگان است؟</summary><p data-i18n="faq.5.a">بله. بدون تبلیغ و بدون ردیابی، با لایسنس GPL-3.0. کد کامل در GitHub است.</p></details>
-</section>
+    <aside class="note reveal">
+      <p><span data-l="fa" lang="fa"><b>یادآوری:</b> گوشی و کامپیوتر باید همدیگر را مستقیم ببینند (یک وای‌فای یا هات‌اسپات گوشی). RoutePou روی آیفون اجرا نمی‌شود. این نسخه بتا است و هنوز روی دستگاه‌های واقعی کامل آزمایش نشده.</span><span data-l="en" lang="en"><b>Good to know:</b> the phone and the PC must reach each other directly (one Wi-Fi, or the phone's hotspot). RoutePou does not run on iPhone. This is a beta that has not yet been fully tested on real devices.</span></p>
+    </aside>
+  </section>
 </main>
 
 <footer class="wrap foot">
-  <nav>
-    <a data-link="repo" href="https://github.com/Mahdi-mortazavi/RoutePou" data-i18n="foot.source">کد در GitHub</a>
-    <a data-link="releases" href="https://github.com/Mahdi-mortazavi/RoutePou/releases" data-i18n="foot.releases">نسخه‌ها</a>
-    <a data-link="security" href="https://github.com/Mahdi-mortazavi/RoutePou/blob/main/SECURITY.md" data-i18n="foot.security">امنیت</a>
-    <a data-link="license" href="https://github.com/Mahdi-mortazavi/RoutePou/blob/main/LICENSE" data-i18n="foot.license">لایسنس</a>
+  <a class="back reveal" href="https://pouone.ir" rel="noopener">
+    <span class="arr"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></span>
+    <span data-l="fa" lang="fa">بازگشت به سایت pouone.ir</span><span data-l="en" lang="en">Back to pouone.ir</span>
+  </a>
+  <nav class="links" aria-label="GitHub">
+    <a href="https://github.com/farrokhzad743-dot/RoutePouNew" rel="noopener"><span data-l="fa" lang="fa">کد در GitHub</span><span data-l="en" lang="en">Source on GitHub</span></a>
+    <a href="https://github.com/farrokhzad743-dot/RoutePouNew/releases" rel="noopener"><span data-l="fa" lang="fa">نسخه‌ها</span><span data-l="en" lang="en">Releases</span></a>
+    <a href="https://github.com/farrokhzad743-dot/RoutePouNew/blob/main/SECURITY.md" rel="noopener"><span data-l="fa" lang="fa">امنیت</span><span data-l="en" lang="en">Security</span></a>
+    <a href="https://github.com/farrokhzad743-dot/RoutePouNew/blob/main/LICENSE" rel="noopener"><span data-l="fa" lang="fa">لایسنس</span><span data-l="en" lang="en">License</span></a>
   </nav>
-  <p class="ver"><span data-i18n="foot.version">نسخهٔ</span> <span class="ltr" id="ver">0.27.0-beta</span></p>
+  <p class="copy">RoutePou · GPL-3.0 · <span data-l="fa" lang="fa">نسخهٔ بتا</span><span data-l="en" lang="en">Beta</span></p>
 </footer>
 
-<dialog id="installDialog" aria-labelledby="instTitle">
-  <h2 id="instTitle" data-i18n="inst.title">نصب وب‌اپ</h2>
-  <p class="inst inst-ios" data-i18n="inst.ios">در Safari دکمهٔ «اشتراک‌گذاری» (Share) را بزن و «Add to Home Screen» را انتخاب کن.</p>
-  <p class="inst inst-android" data-i18n="inst.android">از منوی مرورگر (سه نقطه) «Install app» یا «Add to Home screen» را انتخاب کن.</p>
-  <p class="inst inst-desktop" data-i18n="inst.desktop">در Chrome یا Edge روی آیکن نصب در نوار آدرس بزن، یا از منو «Install RoutePou» را انتخاب کن.</p>
-  <button class="btn solid" id="instClose" type="button" data-i18n="inst.close">بستن</button>
-</dialog>
-
-<script src="strings.js"></script>
-<script src="app.js"></script>
+<script src="site.js"></script>
 </body>
 </html>

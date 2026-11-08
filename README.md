@@ -4,17 +4,18 @@
 
 <br>
 
-<a href="https://github.com/Mahdi-mortazavi/RoutePou/releases/latest/download/RoutePou-windows-x64.exe"><img src="btn-windows.png" height="64" alt="Download for Windows"></a>
-<a href="https://github.com/Mahdi-mortazavi/RoutePou/releases/latest/download/RoutePou-android.apk"><img src="btn-android.png" height="64" alt="Download for Android"></a>
+<a href="https://github.com/farrokhzad743-dot/RoutePouNew/releases/latest/download/RoutePou-windows-x64.exe"><img src="btn-windows.png" height="64" alt="Download for Windows"></a>
+<a href="https://github.com/farrokhzad743-dot/RoutePouNew/releases/latest/download/RoutePou-android.apk"><img src="btn-android.png" height="64" alt="Download for Android"></a>
 <br>
-<a href="https://mahdi-mortazavi.github.io/RoutePou/"><img src="btn-web.png" height="64" alt="Open the web app"></a>
 <a href="README.fa.md"><img src="btn-guide.png" height="64" alt="راهنمای فارسی"></a>
+<br>
+<sub>Website: <a href="https://routepou.pouone.ir">routepou.pouone.ir</a></sub>
 
 <br>
 
-[![Release](https://img.shields.io/github/v/release/Mahdi-mortazavi/RoutePou?color=CF1D2E&label=release)](https://github.com/Mahdi-mortazavi/RoutePou/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/Mahdi-mortazavi/RoutePou/total?color=CF1D2E)](https://github.com/Mahdi-mortazavi/RoutePou/releases)
-[![Stars](https://img.shields.io/github/stars/Mahdi-mortazavi/RoutePou?color=CF1D2E)](https://github.com/Mahdi-mortazavi/RoutePou/stargazers)
+[![Release](https://img.shields.io/github/v/release/farrokhzad743-dot/RoutePouNew?color=CF1D2E&label=release)](https://github.com/farrokhzad743-dot/RoutePouNew/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/farrokhzad743-dot/RoutePouNew/total?color=CF1D2E)](https://github.com/farrokhzad743-dot/RoutePouNew/releases)
+[![Stars](https://img.shields.io/github/stars/farrokhzad743-dot/RoutePouNew?color=CF1D2E)](https://github.com/farrokhzad743-dot/RoutePouNew/stargazers)
 [![License](https://img.shields.io/badge/license-GPL--3.0-CF1D2E)](LICENSE)
 
 `0.27.0-beta`
@@ -45,12 +46,12 @@ The QR code is a password. Anyone who sees it can use your phone's connection.
 - The phone and the PC must be able to reach each other directly: one shared Wi-Fi, or the phone's hotspot. A phone on mobile data alone cannot be reached from another network, and a QR code carries information, not a connection. Using RoutePou across different networks needs a relay server, which this project does not include yet.
 - Some routers have "client isolation" or "AP isolation" turned on, which stops devices on the same Wi-Fi from seeing each other. Turn it off, or use the phone's hotspot.
 - If your VPN app has split tunneling, do not exclude RoutePou from the VPN.
-- **iPhone:** Apple does not allow any app to share the phone's internet or VPN with a computer. The [web app](https://mahdi-mortazavi.github.io/RoutePou/) works on iPhone, but only as a guide and a connection check.
+- **iPhone:** Apple does not allow any app to share the phone's internet or VPN with a computer, so RoutePou does not run on iPhone.
 - macOS and Linux are not supported yet.
 
-## Web app
+## Website
 
-The [web app](https://mahdi-mortazavi.github.io/RoutePou/) installs on Windows, Android and iPhone from the browser. It has the download links, the guide in Persian and English, and a connection check that shows whether your traffic now leaves through a different address. It cannot replace the Android and Windows apps, because a browser cannot open a port on the phone or create a network adapter on Windows.
+[routepou.pouone.ir](https://routepou.pouone.ir) is the download page for Windows and Android. Its source (`index.html`, `site.css`, `site.js` and the font files) is in this repository and is published with GitHub Pages.
 
 ## Security
 

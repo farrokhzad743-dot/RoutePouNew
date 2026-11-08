@@ -4,6 +4,11 @@
 The project was rebuilt as a flat repository with a single Go module and a single workflow.
 
 ### Fixed (build-breaking)
+- Removed `.github/workflows/build.xml`, a stale older copy of the workflow (GitHub ignores `.xml`, and it still used version-numbered file names).
+- Windows: the built EXE stopped at start-up with "No module named 'tkinter.ttk'", because `routepou_windows.py` loads `tkinter.ttk` with `__import__()` and PyInstaller cannot see that. The workflow now passes `--hidden-import tkinter.ttk` and fails the build if the module is missing from the EXE. The app code is unchanged.
+- Android: `RoutePouWgKeys.kt`, `RoutePouWgConfig.kt` and `RoutePouPairingPayload.kt` declared the package `com.pou.routepou.pairing`, but `MainActivity.kt` used them without importing it, so Gradle stopped with "Unresolved reference" and no APK was produced. Every Kotlin source is now in `com.pou.routepou`, and a test enforces it.
+- Release job: a failed Android build no longer blocks the Windows release; the release notes say the APK is missing. Gradle reports are kept as a workflow artifact when the Android build fails.
+- Android: a request URL containing `$` or `\` could break the HTTP proxy's request-line rewrite; the replacement text is now escaped.
 - Windows CI: the worker's tests imported the engine from a GitHub path that `go.mod` never declared, so `go mod tidy` fetched foreign code or failed. The engine and the worker are now one module.
 - Go engine tests read `../shared/test-vectors.json`, a path and file name that did not exist, so the contract tests always failed. The vector now sits beside the test.
 - The Windows job ran the Python tests on Windows, where default text decoding (cp1252) cannot read the Persian source files. UTF-8 mode is forced and the tests run on Linux.
@@ -18,7 +23,7 @@ The project was rebuilt as a flat repository with a single Go module and a singl
 - Connecting from a different network (phone on mobile data only) is not supported; it needs a relay server.
 
 ### Added
-- Web app (installable PWA, Persian and English, dark and light) with downloads, guide, a before/after connection check and an Install button, served by GitHub Pages from the repository root. It is a guide, not a replacement for the apps.
+- Download website for Windows and Android (`index.html`, `site.css`, `site.js`; light design with clay icons, Persian and English), published with GitHub Pages at routepou.pouone.ir. It replaces the earlier installable web app.
 - `README.fa.md` (Persian guide), `PUBLISHING.md` (maintainer steps), `set-repo.py` (rewrite links for another repository).
 - Release files have fixed names (`RoutePou-android.apk`, `RoutePou-windows-x64.exe`) and the release is marked latest, so the README download buttons always work.
 

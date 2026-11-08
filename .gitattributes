@@ -7,3 +7,5 @@
 *.py text eol=lf
 *.png binary
 *.ico binary
+*.woff binary
+*.woff2 binary

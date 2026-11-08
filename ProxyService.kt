@@ -108,7 +108,8 @@ class ProxyService : Service() {
                 val port = if (uri.port > 0) uri.port else 80
                 val path = (uri.rawPath.ifBlank { "/" }) + (uri.rawQuery?.let { "?$it" } ?: "")
                 val remote = Socket().apply { connect(InetSocketAddress(host, port), 15000) }
-                val rewritten = header.replaceFirst(Regex("^\\S+\\s+\\S+\\s+"), "$method $path ")
+                // The replacement is escaped: a URL containing '$' or '\' must not be read as a group reference.
+                val rewritten = header.replaceFirst(Regex("^\\S+\\s+\\S+\\s+"), Regex.escapeReplacement("$method $path "))
                     .replace(Regex("(?im)^Proxy-Connection:.*\\r?\\n"), "")
                     .replace(Regex("(?im)^X-RoutePou-Key:.*\\r?\\n"), "")
                 remote.getOutputStream().write(rewritten.toByteArray(Charsets.ISO_8859_1))

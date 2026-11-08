@@ -1,4 +1,4 @@
-package com.pou.routepou.pairing
+package com.pou.routepou
 
 import java.security.SecureRandom
 import java.util.Base64

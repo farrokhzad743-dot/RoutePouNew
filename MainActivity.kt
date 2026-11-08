@@ -393,8 +393,8 @@ class MainActivity : Activity() {
             if (rank < 0) continue
             for (addr in ni.inetAddresses.toList()) {
                 if (addr is Inet4Address && !addr.isLoopbackAddress && addr.isSiteLocalAddress) {
-                    val found = addr.hostAddress
-                    if (found != null) candidates.add(Pair(rank, found))
+                    val text = addr.hostAddress
+                    if (text != null) candidates.add(Pair(rank, text))
                 }
             }
         }

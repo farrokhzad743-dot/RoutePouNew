@@ -59,7 +59,9 @@ def test_stage_script_produces_a_standard_android_project(tmp_path):
 def test_every_kotlin_package_matches_the_namespace():
     for kt in ROOT.glob("*.kt"):
         pkg = re.search(r"^package\s+([\w.]+)", kt.read_text(encoding="utf-8"), re.M)
-        assert pkg and pkg.group(1).startswith("com.pou.routepou"), kt.name
+        # stage-android.sh copies every file into one folder and MainActivity uses the other classes without
+        # imports, so a different package (such as `.pairing`) breaks the Gradle build with "Unresolved reference".
+        assert pkg and pkg.group(1) == "com.pou.routepou", kt.name
 
 
 def test_go_layout_is_one_module():
@@ -81,10 +83,16 @@ def test_repo_has_no_stray_files_and_stays_flat():
     allowed_dirs = {".github", "res", "winclient", "build", "__pycache__", ".pytest_cache", ".git"}
     assert {p.name for p in ROOT.iterdir() if p.is_dir()} <= allowed_dirs
     for name in ("LICENSE", "README.md", "README.fa.md", "PUBLISHING.md", "SECURITY.md", "TESTING.md",
-                 "THIRD_PARTY_NOTICES.md", "logo.png", ".gitignore", "index.html", "app.css", "app.js", "strings.js",
-                 "sw.js", "manifest.webmanifest", ".nojekyll", "hero.png", "og-image.png", "set-repo.py"):
+                 "THIRD_PARTY_NOTICES.md", "FONT_LICENSES.txt", "logo.png", ".gitignore", "index.html", "site.css",
+                 "site.js", "CNAME", ".nojekyll", "hero.png", "og-image.png", "set-repo.py"):
         assert (ROOT / name).is_file(), name
     assert "GNU GENERAL PUBLIC LICENSE" in (ROOT / "LICENSE").read_text(encoding="utf-8")
     ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
     for pattern in ("build/", "*.jks", "*.p12", "__pycache__/"):
         assert pattern in ignore
+
+
+def test_workflows_folder_contains_exactly_one_workflow():
+    """A stale `build.xml` copy once sat next to build.yml. GitHub ignores it, but it shows an older build."""
+    files = sorted(p.name for p in (ROOT / ".github" / "workflows").iterdir())
+    assert files == ["build.yml"], files

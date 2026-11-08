@@ -123,3 +123,27 @@ def test_manifest_declares_services_and_icon():
         assert needle in manifest
     assert (ROOT / "res/mipmap-anydpi-v26/ic_launcher.xml").is_file()
     assert (ROOT / "res/drawable-nodpi/ic_launcher_foreground.png").is_file()
+
+
+def test_every_source_is_in_the_app_package_and_no_stray_resource_files():
+    """The Gradle build failed once because three files were in `com.pou.routepou.pairing` while MainActivity
+    used them without an import."""
+    for path in KOTLIN:
+        match = re.search(r"^package\s+([\w.]+)", path.read_text(encoding="utf-8"), re.M)
+        assert match and match.group(1) == "com.pou.routepou", path.name
+    # an extensionless placeholder in res/ is not a valid resource
+    for res in (ROOT / "res").rglob("*"):
+        if res.is_file():
+            assert res.suffix, f"resource without extension: {res}"
+
+
+def test_cross_file_references_resolve_within_the_package():
+    """Every top-level class/object the Kotlin files use unqualified must be declared in the same package."""
+    declared = set()
+    for path in KOTLIN:
+        declared |= set(re.findall(r"^(?:data\s+)?(?:class|object)\s+(\w+)", path.read_text(encoding="utf-8"), re.M))
+    activity = (ROOT / "MainActivity.kt").read_text(encoding="utf-8")
+    for name in ("RoutePouWgKeys", "RoutePouWgConfig", "RoutePouPairingPayload", "RoutePouUpstream", "TlsIdentity",
+                 "WireGuardEngine", "WireGuardService", "ProxyService"):
+        assert name in activity and name in declared, name
+    assert not re.search(r"^import com\.pou\.routepou\.\w+\.", activity, re.M)

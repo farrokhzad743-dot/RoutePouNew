@@ -1,12 +1,12 @@
 # Publishing RoutePou
 
-Steps for the person who owns the GitHub repository. Every command is run in the folder that contains `README.md` and the hidden `.github` folder.
+Steps for the person who owns the GitHub repository (`farrokhzad743-dot/RoutePouNew`). Every command is run in the folder that contains `README.md` and the hidden `.github` folder.
 
 ## 1. Create the repository
 
-On GitHub: **New repository**, name it `RoutePou`, public, and leave "Add a README", ".gitignore" and "license" unticked.
+On GitHub: **New repository**, owner `farrokhzad743-dot`, name `RoutePouNew`, **public** (GitHub Pages needs a public repository on a free plan), and leave "Add a README", ".gitignore" and "license" unticked.
 
-If your account or the repository name is different from `Mahdi-mortazavi/RoutePou`, run this once before the first push. It rewrites the links in the README files and the web app:
+If you ever publish under a different account or repository name, run this once before the first push. It rewrites the links in the README files, `index.html` and `site.js`:
 
 ```
 python set-repo.py YourName/YourRepo
@@ -20,21 +20,37 @@ Use Git, because it keeps the hidden `.github` folder and the `res` and `winclie
 git init -b main
 git add .
 git commit -m "RoutePou 0.27.0-beta"
-git remote add origin https://github.com/YourName/YourRepo.git
+git remote add origin https://github.com/farrokhzad743-dot/RoutePouNew.git
 git push -u origin main
 ```
 
 If you upload in the browser instead, drag the contents of the folder, not the folder itself. Afterwards the repository home page must show a `.github` folder. If it does not, choose **Add file, Create new file**, type `.github/workflows/build.yml` as the name and paste the contents of `build.yml`. Without that file no build runs.
 
-## 3. Turn on the web app
+## 3. Turn on the website (routepou.pouone.ir)
 
-**Settings, Pages**: Source **Deploy from a branch**, branch `main`, folder `/ (root)`. After a minute the web app is at `https://YourName.github.io/YourRepo/`. The file `.nojekyll` is already there.
+The download page is `index.html` in the repository root. Two things connect it to your domain.
+
+**a) DNS, at the place where `pouone.ir` is managed.** Add one record:
+
+| Type | Name / Host | Value / Target |
+|---|---|---|
+| `CNAME` | `routepou` | `farrokhzad743-dot.github.io` |
+
+Use only the account host in the value, without `/RoutePouNew`. If the DNS service has a proxy switch (for example Cloudflare's orange cloud), turn it off for this record until GitHub has issued the certificate.
+
+**b) GitHub, in the repository.** **Settings, Pages**:
+
+1. Source **Deploy from a branch**, branch `main`, folder `/ (root)`, **Save**.
+2. Custom domain: `routepou.pouone.ir`, **Save**. The file `CNAME` in this repository already says the same, so the setting stays after every push.
+3. When GitHub shows the DNS check as successful (a few minutes to a day), tick **Enforce HTTPS**.
+
+Until the domain works, the same page is at `https://farrokhzad743-dot.github.io/RoutePouNew/`. The file `.nojekyll` is already there.
 
 ## 4. Test build
 
 **Actions, Build and Release, Run workflow**. When it finishes, download `RoutePou-Android` and `RoutePou-Windows` from the bottom of the run page. The summary of each job says whether the Full Tunnel engine is inside the file.
 
-If a step fails, open it, copy the red error lines and send them to whoever maintains the project. The Go engine and the Windows worker are optional steps: if they fail, the apps are still built in proxy-only mode and the release notes say so.
+If the Android job fails, open its **Build APKs** step and copy the red error lines. The workflow also keeps the Gradle reports as an artifact named `android-build-reports`. The Go engine and the Windows worker are optional steps: if they fail, the apps are still built in proxy-only mode and the release notes say so.
 
 ## 5. Release
 
@@ -45,7 +61,18 @@ git tag v0.27.0-beta
 git push origin v0.27.0-beta
 ```
 
-The workflow builds everything and publishes a release with `RoutePou-android.apk`, `RoutePou-windows-x64.exe` and `SHA256SUMS.txt`. The file names do not contain the version on purpose, so the download buttons in the README (`releases/latest/download/...`) always point at the newest release.
+If that tag already exists from an earlier attempt, delete it first and push it again:
+
+```
+git push origin :refs/tags/v0.27.0-beta
+git tag -d v0.27.0-beta
+git tag v0.27.0-beta
+git push origin v0.27.0-beta
+```
+
+If a draft or failed release with the same name exists under **Releases**, delete it as well.
+
+The workflow builds everything and publishes a release with `RoutePou-android.apk`, `RoutePou-windows-x64.exe` and `SHA256SUMS.txt`. The file names do not contain the version on purpose, so the download buttons (`releases/latest/download/...`) always point at the newest release. If the Android build fails, the Windows file is still published and the release notes say the APK is missing.
 
 ## 6. Stable Android signing (recommended)
 
