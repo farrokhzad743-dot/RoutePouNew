@@ -72,7 +72,8 @@ jobs:
   # ---------------------------------------------------------------------- Android
   android:
     name: Android APK
-    runs-on: ubuntu-latest
+    # A fixed image: "ubuntu-latest" moved to 26.04, which carries a different Android SDK setup.
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:
       ROUTEPOU_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -105,14 +106,26 @@ jobs:
           go-version: '1.25.x'
           cache-dependency-path: go.sum
 
-      - uses: android-actions/setup-android@v3
-
+      # The Ubuntu runner image already contains the Android SDK and its sdkmanager. The helper action
+      # android-actions/setup-android@v3 is not used: it asks sdkmanager for a package called "tools"
+      # that no longer exists, and stops the whole job with "Failed to find package 'tools'".
       - name: Install Android platform, build-tools and NDK
         run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platform-tools" "platforms;android-${ANDROID_COMPILE_SDK}" \
+          set -euo pipefail
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          SDKMANAGER="$(ls -d "$SDK"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | sort -V | tail -n 1 || true)"
+          if [ -z "$SDKMANAGER" ]; then SDKMANAGER="$(command -v sdkmanager)"; fi
+          echo "sdkmanager: $SDKMANAGER"
+          echo "SDK folder: $SDK"
+          yes | "$SDKMANAGER" --sdk_root="$SDK" --licenses > /dev/null || true
+          "$SDKMANAGER" --sdk_root="$SDK" "platform-tools" "platforms;android-${ANDROID_COMPILE_SDK}" \
             "build-tools;${ANDROID_BUILD_TOOLS}" "ndk;${ANDROID_NDK_VERSION}"
-          echo "ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/${ANDROID_NDK_VERSION}" >> "$GITHUB_ENV"
+          {
+            echo "ANDROID_HOME=$SDK"
+            echo "ANDROID_SDK_ROOT=$SDK"
+            echo "ANDROID_NDK_HOME=$SDK/ndk/${ANDROID_NDK_VERSION}"
+          } >> "$GITHUB_ENV"
+          echo "$SDK/platform-tools" >> "$GITHUB_PATH"
 
       - uses: gradle/actions/setup-gradle@v4
         with:
@@ -267,8 +280,8 @@ jobs:
           $full = ((Test-Path relaywg-client.exe) -and (Test-Path wintun.dll))
           $a = @('--noconfirm', '--clean', '--onefile', '--windowed', '--icon', 'routepou.ico',
                  '--collect-all', 'zxingcpp', '--collect-all', 'PIL', '--collect-all', 'cv2',
-                 # routepou_windows.py loads tkinter.ttk with __import__(), which PyInstaller cannot see. Without this
-                 # flag the EXE stops at start-up with "No module named 'tkinter.ttk'".
+                 # tkinter.ttk is also imported with a plain import in routepou_windows.py. Declared here as well, because an
+                 # EXE without it stops at start-up with "No module named 'tkinter.ttk'".
                  '--hidden-import', 'tkinter.ttk', '--name', 'RoutePou')
           if ($full) { $a += @('--add-binary', 'relaywg-client.exe;.', '--add-binary', 'wintun.dll;.') }
           else { Write-Host '::warning::Worker or Wintun missing: building proxy-mode-only EXE.' }
@@ -288,6 +301,29 @@ jobs:
           "windows_full_tunnel=$state" | Out-File dist-out\info-windows.txt -Encoding ascii
           "### Windows`n- Full Tunnel worker: **$state**" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
           Get-ChildItem dist-out | Format-Table Name, Length
+
+      # Start the finished EXE once, the way a user would. The window opens for a moment and closes again; exit code 0
+      # means that every module the program needs is inside the EXE. This is the check that would have caught the
+      # "No module named 'tkinter.ttk'" error before anyone downloaded the file.
+      - name: Start the finished EXE once (self-test)
+        shell: pwsh
+        run: |
+          python -c "import tkinter; r = tkinter.Tk(); r.destroy()"
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host '::warning::This runner cannot open a window, so the EXE start test was skipped.'
+            "- EXE start test: **skipped** (the runner cannot open windows)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+            exit 0
+          }
+          $p = Start-Process -FilePath (Resolve-Path dist-out\RoutePou-windows-x64.exe).Path -ArgumentList '--selftest' -PassThru
+          if (-not $p.WaitForExit(60000)) {
+            $p.Kill()
+            throw 'The EXE did not close within 60 seconds. It probably showed an error window instead of starting.'
+          }
+          $report = Join-Path ([IO.Path]::GetTempPath()) 'routepou-selftest.txt'
+          if (Test-Path $report) { Get-Content $report | ForEach-Object { Write-Host $_ } }
+          if ($p.ExitCode -ne 0) { throw "The EXE stopped with exit code $($p.ExitCode) when it was started." }
+          Write-Host 'The EXE started and closed normally.'
+          "- EXE start test: **passed** (the finished RoutePou.exe opened its window and closed normally)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
 
       - uses: actions/upload-artifact@v4
         with:
