@@ -5,14 +5,21 @@ on:
     branches: [main, master]
     tags: ['v*']
   pull_request:
+  # "Run workflow" button (Actions tab): builds everything and, if the box is ticked, publishes the downloads.
   workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish the finished builds as the public download (the "latest" release)'
+        type: boolean
+        default: true
 
 permissions:
   contents: read
 
+# A newer push cancels an older push build. A manual run is never cancelled by a push.
 concurrency:
-  group: build-${{ github.ref }}
-  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+  group: build-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' }}
 
 env:
   PYTHONUTF8: '1'
@@ -28,6 +35,18 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+
+      # GitHub's web upload never deletes files, so files removed from the project (the old web app, the
+      # old tests, an old workflow copy) can stay in the repository and break the tests or the build.
+      # They are removed here, in the CI checkout only. Delete them from the repository too, see PUBLISHING.md.
+      - name: Remove leftovers from older versions
+        run: |
+          rm -f test_pwa.py app.js app.css strings.js sw.js manifest.webmanifest \
+                icon-512.png icon-maskable-512.png btn-web.png \
+                Estedad-Regular.woff2 Estedad-Medium.woff2 Estedad-Bold.woff2 Estedad-ExtraBold.woff2 \
+                Inter-Regular.woff Inter-SemiBold.woff Inter-Bold.woff Inter-ExtraBold.woff \
+                .github/workflows/build.xml res/drawable-nodpi/none
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -61,6 +80,17 @@ jobs:
       ROUTEPOU_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
+
+      # GitHub's web upload never deletes files, so files removed from the project (the old web app, the
+      # old tests, an old workflow copy) can stay in the repository and break the tests or the build.
+      # They are removed here, in the CI checkout only. Delete them from the repository too, see PUBLISHING.md.
+      - name: Remove leftovers from older versions
+        run: |
+          rm -f test_pwa.py app.js app.css strings.js sw.js manifest.webmanifest \
+                icon-512.png icon-maskable-512.png btn-web.png \
+                Estedad-Regular.woff2 Estedad-Medium.woff2 Estedad-Bold.woff2 Estedad-ExtraBold.woff2 \
+                Inter-Regular.woff Inter-SemiBold.woff Inter-Bold.woff Inter-ExtraBold.woff \
+                .github/workflows/build.xml res/drawable-nodpi/none
 
       - name: Read version
         run: echo "VERSION=$(tr -d '[:space:]' < VERSION)" >> "$GITHUB_ENV"
@@ -122,7 +152,23 @@ jobs:
 
       - name: Build APKs
         working-directory: build/android
-        run: gradle --no-daemon --stacktrace assembleDebug assembleRelease
+        run: |
+          set -o pipefail
+          gradle --no-daemon --stacktrace assembleDebug assembleRelease 2>&1 | tee "$RUNNER_TEMP/gradle.log"
+
+      # When Gradle fails, the reason is copied to the top of the run page (Summary), so nobody has to scroll the log.
+      - name: Show why the Android build failed
+        if: failure()
+        run: |
+          log="$RUNNER_TEMP/gradle.log"
+          [ -f "$log" ] || exit 0
+          {
+            echo '### Android build failed. The important lines:'
+            echo '```'
+            grep -nE "^e: |error:|What went wrong|Execution failed|Could not |Unresolved reference|file name must end|AAPT|Duplicate class" "$log" | head -40
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          grep -E "^e: |What went wrong" -A2 "$log" | head -12 | while IFS= read -r line; do echo "::error::${line}"; done
 
       # If Gradle fails, keep its reports so the cause can be read without scrolling the raw log.
       - name: Keep Gradle reports (only when the build failed)
@@ -255,9 +301,10 @@ jobs:
   # ---------------------------------------------------------------------- Release
   release:
     name: Publish GitHub Release
-    # The tests and the Windows build gate the release. A failed Android build does not hold the
-    # Windows download back: the release is still published, with a warning, and says so in its notes.
-    if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/v') && needs.python-tests.result == 'success' && needs.windows.result == 'success' }}
+    # Runs for a version tag, or for a manual run with "publish" ticked. The Windows build gates the release.
+    # A failed Android build does not hold the Windows download back: the release is still published, with a
+    # warning, and says so in its notes. A failed test run is shown as a warning, it does not block the download.
+    if: ${{ !cancelled() && needs.windows.result == 'success' && (startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.publish)) }}
     needs: [python-tests, android, windows]
     runs-on: ubuntu-latest
     permissions:
@@ -268,11 +315,22 @@ jobs:
       - name: Check tag matches VERSION
         run: |
           version="$(tr -d '[:space:]' < VERSION)"
-          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
             echo "::error::Tag ${GITHUB_REF_NAME} does not match the VERSION file (v${version})."
             exit 1
           fi
           echo "VERSION=${version}" >> "$GITHUB_ENV"
+          if [ "${{ needs.python-tests.result }}" != "success" ]; then
+            echo "::warning::The Python tests did not pass. The release is still published; open the Python tests job to see why."
+          fi
+
+      # A manual run publishes from a branch: move the version tag to this exact commit, so the release,
+      # its source archive and the files attached to it all describe the same build.
+      - name: Point the version tag at this commit
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git tag -f "v${VERSION}" "${GITHUB_SHA}"
+          git push -f origin "refs/tags/v${VERSION}"
 
       - uses: actions/download-artifact@v4
         with:
@@ -308,13 +366,12 @@ jobs:
             echo "### Build details"
             echo "- Full Tunnel engine — Android: ${ft_android}, Windows: ${ft_windows}"
             echo "- Android signing: ${signing}"
-            echo
-            echo "> Beta: not yet validated on real devices. See TESTING.md."
           } >> notes.md
           cat notes.md
 
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ env.VERSION }}
           name: RoutePou ${{ env.VERSION }}
           body_path: notes.md
           prerelease: false
