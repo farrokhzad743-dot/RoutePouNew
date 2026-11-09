@@ -11,8 +11,7 @@ RoutePou is distributed under the GNU GPL v3 (see `LICENSE`) because it incorpor
 | golang.org/x/* | Go support libraries | BSD-3-Clause |
 | BouncyCastle `bcprov-jdk18on` | X25519 key generation on Android | MIT (Bouncy Castle License) |
 | ZXing core (com.google.zxing:core) | QR generation on Android | Apache-2.0 |
-| Estedad font (Persian text on the website and in the images) — https://github.com/aminabedi68/Estedad | Typography | SIL OFL 1.1 (`FONT_LICENSES.txt`) |
-| Inter font (Latin text on the website and in the images) — https://github.com/rsms/inter | Typography | SIL OFL 1.1 (`FONT_LICENSES.txt`) |
+| Vazirmatn font (Persian and Latin text on the website and in the images) — https://github.com/rastikerdar/vazirmatn | Typography | SIL OFL 1.1 (`FONT_LICENSES.txt`) |
 | zxing-cpp, OpenCV (opencv-python), Pillow | QR decoding on Windows | Apache-2.0 / Apache-2.0 / HPND |
 | PyInstaller | Packaging `RoutePou.exe` | GPL-2.0 with bootloader exception |
 | Wintun (wintun.dll, downloaded from https://www.wintun.net during the build) | Windows virtual network adapter | Wintun prebuilt-binaries license (https://www.wintun.net/) |

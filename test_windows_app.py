@@ -57,7 +57,10 @@ def test_modules_loaded_with_dunder_import_are_declared_as_pyinstaller_hidden_im
     workflow = (root / ".github" / "workflows" / "build.yml").read_text(encoding="utf-8")
     dynamic = set(re.findall(r"__import__\(\s*[\"']([\w.]+)[\"']", source))
     dynamic |= set(re.findall(r"importlib\.import_module\(\s*[\"']([\w.]+)[\"']", source))
-    assert "tkinter.ttk" in dynamic  # keeps this test honest if the code is ever changed
+    # tkinter.ttk is a plain import now (the built EXE once stopped with "No module named 'tkinter.ttk'")
+    assert re.search(r"^from tkinter import ttk\b", source, re.M), "tkinter.ttk must be imported with a plain import"
+    assert "tkinter.ttk" not in dynamic
+    assert "'--hidden-import', 'tkinter.ttk'" in workflow  # and declared again, for safety
     for module in dynamic:
         top = module.split(".")[0]
         static = re.search(rf"^\s*(?:import|from)\s+{re.escape(module)}\b", source, re.M)

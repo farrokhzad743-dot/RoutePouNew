@@ -96,3 +96,60 @@ def test_workflows_folder_contains_exactly_one_workflow():
     """A stale `build.xml` copy once sat next to build.yml. GitHub ignores it, but it shows an older build."""
     files = sorted(p.name for p in (ROOT / ".github" / "workflows").iterdir())
     assert files == ["build.yml"], files
+
+
+def test_workflow_cleanup_step_covers_every_file_removed_from_the_project():
+    """GitHub's web upload never deletes files. The CI jobs remove these leftovers in their own checkout, and
+    PUBLISHING.md tells the owner to delete them from the repository."""
+    removed = ["test_pwa.py", "app.js", "app.css", "strings.js", "sw.js", "manifest.webmanifest", "icon-512.png",
+               "icon-maskable-512.png", "btn-web.png", ".github/workflows/build.xml", "res/drawable-nodpi/none",
+               "Estedad-Regular.woff2", "Estedad-Medium.woff2", "Estedad-Bold.woff2", "Estedad-ExtraBold.woff2",
+               "Inter-Regular.woff", "Inter-SemiBold.woff", "Inter-Bold.woff", "Inter-ExtraBold.woff"]
+    workflow = (ROOT / ".github/workflows/build.yml").read_text(encoding="utf-8")
+    publishing = (ROOT / "PUBLISHING.md").read_text(encoding="utf-8")
+    for name in removed:
+        assert workflow.count(name) == 2, f"{name}: must be removed in both the python-tests and the android job"
+        assert name in publishing, f"{name}: missing from the delete list in PUBLISHING.md"
+        assert not (ROOT / name).exists(), f"{name} is part of the project again"
+
+
+def test_stage_script_leaves_out_files_that_are_not_valid_android_resources(tmp_path):
+    """AGP stops with "The file name must end with .xml or .png" on an extensionless file in res/ (for example the
+    `none` placeholder that was created in the GitHub web editor). The stage script drops such files."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    for item in ROOT.iterdir():
+        if item.name in {".git", "build", "__pycache__", ".pytest_cache"}:
+            continue
+        if item.is_dir():
+            subprocess.run(["cp", "-r", str(item), str(repo / item.name)], check=True)
+        else:
+            subprocess.run(["cp", str(item), str(repo / item.name)], check=True)
+    (repo / "res/drawable-nodpi/none").write_text("none\n")
+    (repo / "res/values/.DS_Store").write_text("x")
+    out = tmp_path / "stage"
+    result = subprocess.run(["bash", str(repo / "stage-android.sh"), str(out)], check=True, capture_output=True, text=True)
+    staged = {p.name for p in (out / "src/main/res").rglob("*") if p.is_file()}
+    assert "none" not in staged and ".DS_Store" not in staged
+    assert {"ic_launcher_foreground.png", "ic_launcher.xml", "styles.xml", "colors.xml"} <= staged
+    assert "left out of the build" in result.stdout
+
+
+def test_release_can_be_started_with_a_button_and_is_not_blocked_by_the_tests():
+    data = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+    triggers = data.get("on", data.get(True))
+    assert triggers["workflow_dispatch"]["inputs"]["publish"]["type"] == "boolean"
+    condition = data["jobs"]["release"]["if"]
+    assert "workflow_dispatch" in condition and "refs/tags/v" in condition
+    assert "needs.windows.result == 'success'" in condition
+    assert "python-tests.result" not in condition, "a red test must not keep the working EXE from being published"
+    text = WORKFLOW.read_text(encoding="utf-8")
+    assert "tag_name: v${{ env.VERSION }}" in text
+    assert 'git push -f origin "refs/tags/v${VERSION}"' in text
+
+
+def test_publishing_guide_explains_the_button_release_and_the_old_fonts():
+    text = (ROOT / "PUBLISHING.md").read_text(encoding="utf-8")
+    assert "Run workflow" in text and "Publish the finished builds" in text
+    for name in ("Estedad-Regular.woff2", "Inter-Regular.woff"):
+        assert name in text

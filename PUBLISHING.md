@@ -24,6 +24,12 @@ git remote add origin https://github.com/farrokhzad743-dot/RoutePouNew.git
 git push -u origin main
 ```
 
+If you upload in the browser, remember that **the web upload never deletes files**. Files that this version removed stay in the repository and can break the tests. The workflow ignores the ones listed below in its own checkout, but delete them from the repository too (open each file, then the trash icon, then **Commit changes**):
+
+`test_pwa.py`, `app.js`, `app.css`, `strings.js`, `sw.js`, `manifest.webmanifest`, `icon-512.png`, `icon-maskable-512.png`, `btn-web.png`, `.github/workflows/build.xml`, `res/drawable-nodpi/none`
+
+The page now uses one font, Vazirmatn. The old font files are no longer used and can be deleted the same way (optional; the workflow ignores them in its own checkout): `Estedad-Regular.woff2`, `Estedad-Medium.woff2`, `Estedad-Bold.woff2`, `Estedad-ExtraBold.woff2`, `Inter-Regular.woff`, `Inter-SemiBold.woff`, `Inter-Bold.woff`, `Inter-ExtraBold.woff`.
+
 If you upload in the browser instead, drag the contents of the folder, not the folder itself. Afterwards the repository home page must show a `.github` folder. If it does not, choose **Add file, Create new file**, type `.github/workflows/build.yml` as the name and paste the contents of `build.yml`. Without that file no build runs.
 
 ## 3. Turn on the website (routepou.pouone.ir)
@@ -54,7 +60,11 @@ If the Android job fails, open its **Build APKs** step and copy the red error li
 
 ## 5. Release
 
-The tag must match the `VERSION` file:
+**The simple way (no Git needed):** **Actions, Build and Release, Run workflow**, keep **Publish the finished builds** ticked, press **Run workflow**. When the run is green, the Windows and Android files are on the **Releases** page and the website buttons download them. The workflow moves the version tag to the commit it built, so the release always matches the code.
+
+The download buttons take the file from the *latest release*. If you changed the code after an earlier release, run this again; otherwise people keep getting the old file.
+
+**With a tag:** the tag must match the `VERSION` file:
 
 ```
 git tag v0.27.0-beta

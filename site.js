@@ -1,4 +1,4 @@
-/* RoutePou download page: language switch and reveal-on-scroll. No tracking, no network calls. */
+/* RoutePou download page: language switch and a gentle reveal. No tracking, no network calls. */
 (function () {
   "use strict";
   var root = document.documentElement;

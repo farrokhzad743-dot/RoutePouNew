@@ -28,6 +28,7 @@ class Page(HTMLParser):
         super().__init__()
         self.local, self.inline_scripts, self.inline_styles, self.links = [], 0, 0, []
         self.fa, self.en, self.ids = 0, 0, set()
+        self.text, self._skip = [], 0
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
@@ -41,12 +42,22 @@ class Page(HTMLParser):
                 self.local.append(v)
         if tag == "a" and a.get("href"):
             self.links.append(a["href"])
-        if a.get("data-l") == "fa":
+        if tag in ("script", "style"):
+            self._skip += 1
+        if tag != "html" and a.get("lang") == "fa":
             self.fa += 1
-        if a.get("data-l") == "en":
+        if tag != "html" and a.get("lang") == "en":
             self.en += 1
         if "id" in a:
             self.ids.add(a["id"])
+
+    def handle_endtag(self, tag):
+        if tag in ("script", "style"):
+            self._skip -= 1
+
+    def handle_data(self, data):
+        if not self._skip:
+            self.text.append(data)
 
 
 def page():
@@ -96,6 +107,23 @@ def test_no_foreign_names_in_the_site_files():
         assert "mahdi" not in text and "mortazavi" not in text, name
 
 
+def test_page_shows_no_github_beta_or_version_wording():
+    """The owner wants the page to read like a company site: no GitHub wording, no beta badge, no version text.
+    (The download links themselves still point at the release files.)"""
+    visible = " ".join(page().text).lower()
+    for word in ("github", "beta", "alpha", "آلفا", "بتا", "gpl-3.0 license text", "pull request", "issue"):
+        assert word not in visible, word
+    assert not re.search(r"\b\d+\.\d+\.\d+\b", visible)
+    assert "btn-web" not in INDEX and "Open the web app" not in INDEX
+
+
+def test_page_has_the_sections_the_owner_asked_for():
+    ids = page().ids
+    assert {"download", "how", "app", "security", "license"} <= ids
+    for word in ("TLS", "WireGuard", "GPL", "Vazirmatn", "SIL OFL", "MIT", "Apache-2.0"):
+        assert word in INDEX, word
+
+
 def test_in_page_anchors_exist():
     p = page()
     for href in p.links:
@@ -109,13 +137,20 @@ def test_custom_domain_files():
     assert f"https://{DOMAIN}/" in INDEX
 
 
-def test_fonts_are_bundled_with_their_license():
-    for name in ("Estedad-Regular.woff2", "Estedad-Medium.woff2", "Estedad-Bold.woff2", "Estedad-ExtraBold.woff2",
-                 "Inter-Regular.woff", "Inter-SemiBold.woff", "Inter-Bold.woff", "Inter-ExtraBold.woff"):
-        assert (ROOT / name).stat().st_size > 10_000, name
+def test_one_font_only_and_it_is_bundled_with_its_license():
+    for name in ("Vazirmatn-Regular.woff2", "Vazirmatn-Medium.woff2", "Vazirmatn-Bold.woff2"):
+        assert (ROOT / name).stat().st_size > 20_000, name
     lic = (ROOT / "FONT_LICENSES.txt").read_text(encoding="utf-8")
-    assert "Estedad" in lic and "Inter" in lic and "SIL OPEN FONT LICENSE" in lic
-    assert "Estedad" in CSS and "Inter" in CSS
+    assert "Vazirmatn" in lic and "SIL OPEN FONT LICENSE" in lic
+    families = set(re.findall(r'font-family:\s*"?([A-Za-z]+)"?', CSS))
+    assert families == {"Vazirmatn"}, families
+    assert "Estedad" not in CSS and "Inter" not in CSS
+
+
+def test_style_is_plain_white_and_red():
+    for effect in ("gradient", "box-shadow", "text-shadow", "blur(", "neon", "filter: drop-shadow"):
+        assert effect not in CSS, effect
+    assert "--red:" in CSS and "#d01f2f" in CSS.lower()
 
 
 def test_page_is_light_and_respects_reduced_motion():
@@ -132,6 +167,8 @@ def test_javascript_parses():
 def test_images_exist_with_the_expected_size():
     assert png_size(ROOT / "og-image.png") == (1200, 630)
     assert png_size(ROOT / "hero.png") == (1600, 640)
+    assert png_size(ROOT / "app-android.png") == (688, 1520)
+    assert png_size(ROOT / "app-windows.png") == (1520, 1040)
     for name in ("btn-windows", "btn-android", "btn-guide", "btn-windows-fa", "btn-android-fa"):
         assert png_size(ROOT / f"{name}.png") == (600, 128), name
     assert not (ROOT / "btn-web.png").exists()

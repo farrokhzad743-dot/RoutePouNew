@@ -6,6 +6,7 @@ from proxy_headers import rewrite_request_head
 from wg_provision import parse_qr_to_windows_ipc
 from wg_supervisor import WindowsWireGuardSession, WorkerError
 from tkinter import messagebox
+from tkinter import ttk  # a plain import: PyInstaller bundles it. (__import__() is invisible to it)
 import winreg
 from tkinter import filedialog
 
@@ -307,7 +308,7 @@ DARK_MODE = True
 COLORS = dict(DARK_COLORS)
 FONT = "Segoe UI"
 
-style = __import__("tkinter.ttk", fromlist=["ttk"]).Style(root)
+style = ttk.Style(root)
 try:
     style.theme_use("clam")
 except Exception:

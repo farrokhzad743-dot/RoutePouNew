@@ -16,6 +16,12 @@ kotlin=("$repo"/*.kt)
 cp "${kotlin[@]}" "$src/java/com/pou/routepou/"
 cp "$repo/AndroidManifest.xml" "$src/AndroidManifest.xml"
 cp -r "$repo/res/." "$src/res/"
+# Android's resource merger stops with "The file name must end with .xml or .png" on any file in res/ that has
+# no extension (a "none" placeholder made in the GitHub web editor, a Thumbs.db, a .DS_Store). Leave those out.
+while IFS= read -r stray; do
+  echo "NOTE: left out of the build (not a valid Android resource): ${stray#"$src/"}"
+  rm -f -- "$stray"
+done < <(find "$src/res" -type f \( ! -name '*.*' -o -name '.*' -o -iname 'Thumbs.db' \))
 cp "$repo/android-build.gradle.kts"    "$out/build.gradle.kts"
 cp "$repo/android-settings.gradle.kts" "$out/settings.gradle.kts"
 cp "$repo/android-gradle.properties"   "$out/gradle.properties"
