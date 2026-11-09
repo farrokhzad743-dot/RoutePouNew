@@ -54,7 +54,7 @@ Until the domain works, the same page is at `https://farrokhzad743-dot.github.io
 
 ## 4. Test build
 
-**Actions, Build and Release, Run workflow**. When it finishes, download `RoutePou-Android` and `RoutePou-Windows` from the bottom of the run page. The summary of each job says whether the Full Tunnel engine is inside the file.
+**Actions, Build and Release, Run workflow**. When it finishes, download `RoutePou-Android` and `RoutePou-Windows` from the bottom of the run page. The summary of each job says whether the Full Tunnel engine is inside the file. The Windows summary also says whether the finished EXE started and closed normally (the self-test).
 
 If the Android job fails, open its **Build APKs** step and copy the red error lines. The workflow also keeps the Gradle reports as an artifact named `android-build-reports`. The Go engine and the Windows worker are optional steps: if they fail, the apps are still built in proxy-only mode and the release notes say so.
 

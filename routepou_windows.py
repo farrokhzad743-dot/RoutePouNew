@@ -586,4 +586,16 @@ def _restore_proxy_on_exit():
 
 atexit.register(_restore_proxy_on_exit)
 root.protocol("WM_DELETE_WINDOW", lambda: (disconnect_full_tunnel(), disconnect(), root.destroy()))
+if "--selftest" in sys.argv:
+    # Used only by the build: it starts the finished EXE once with this flag. The window is built, shown for a moment
+    # and closed again. Exit code 0 means every module the program needs was found inside the EXE.
+    try:
+        import importlib
+        for _module in ("tkinter.ttk", "cv2", "zxingcpp", "PIL.Image", "winreg"):
+            importlib.import_module(_module)
+        root.after(1500, root.destroy)
+    except Exception:
+        import tempfile, traceback
+        (Path(tempfile.gettempdir()) / "routepou-selftest.txt").write_text(traceback.format_exc(), encoding="utf-8")
+        sys.exit(2)
 root.mainloop()

@@ -66,3 +66,18 @@ def test_modules_loaded_with_dunder_import_are_declared_as_pyinstaller_hidden_im
         static = re.search(rf"^\s*(?:import|from)\s+{re.escape(module)}\b", source, re.M)
         declared = f"'--hidden-import', '{module}'" in workflow or f"'--collect-all', '{top}'" in workflow
         assert static or declared, f"{module} would be missing from the EXE"
+
+
+def test_finished_exe_is_started_once_in_the_build():
+    """The user cannot always test the EXE on a PC. The build starts the finished EXE with --selftest: the window
+    opens and closes by itself, and any missing module makes the build fail instead of the user's PC."""
+    from pathlib import Path
+    root = Path(__file__).resolve().parent
+    source = (root / "routepou_windows.py").read_text(encoding="utf-8")
+    workflow = (root / ".github" / "workflows" / "build.yml").read_text(encoding="utf-8")
+    assert '"--selftest" in sys.argv' in source and "root.after(1500, root.destroy)" in source
+    for module in ("tkinter.ttk", "cv2", "zxingcpp", "PIL.Image"):
+        assert f'"{module}"' in source.split('"--selftest" in sys.argv', 1)[1]
+    assert "'--selftest'" in workflow and "WaitForExit(60000)" in workflow
+    # the selftest must come after the EXE is built and before it is uploaded
+    assert workflow.index("pyinstaller @a") < workflow.index("'--selftest'") < workflow.index("name: RoutePou-Windows")

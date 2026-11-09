@@ -153,3 +153,17 @@ def test_publishing_guide_explains_the_button_release_and_the_old_fonts():
     assert "Run workflow" in text and "Publish the finished builds" in text
     for name in ("Estedad-Regular.woff2", "Inter-Regular.woff"):
         assert name in text
+
+
+def test_android_job_uses_the_sdk_on_the_runner_and_a_fixed_image():
+    """The helper action android-actions/setup-android@v3 stopped the job with "Failed to find package 'tools'"
+    (sdkmanager no longer has that package). The runner image already contains the SDK, so sdkmanager is called directly."""
+    data = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+    job = data["jobs"]["android"]
+    assert job["runs-on"] == "ubuntu-24.04"
+    assert not any("android-actions" in str(step.get("uses", "")) for step in job["steps"])
+    install = next(step for step in job["steps"] if step.get("name", "").startswith("Install Android platform"))
+    for needle in ('platforms;android-${ANDROID_COMPILE_SDK}', 'build-tools;${ANDROID_BUILD_TOOLS}',
+                   'ndk;${ANDROID_NDK_VERSION}', "ANDROID_HOME=$SDK", "--licenses"):
+        assert needle in install["run"], needle
+    assert "packages: tools" not in WORKFLOW.read_text(encoding="utf-8")
