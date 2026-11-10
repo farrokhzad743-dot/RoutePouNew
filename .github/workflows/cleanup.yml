@@ -1,0 +1,41 @@
+name: Remove old files
+
+# Manual only: Actions, Remove old files, Run workflow. Removes from the repository the files listed in old-files.txt
+# (leftovers of older versions; GitHub's web upload never deletes files). It builds and publishes nothing.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  remove:
+    name: Remove the files listed in old-files.txt
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove them and commit
+        run: |
+          removed=0
+          while IFS= read -r name; do
+            name="${name%$'\r'}"
+            case "$name" in
+              ''|'#'*) continue ;;
+              /*|*..*) echo "::warning::skipped an unsafe path: $name"; continue ;;
+              .github/*) [ -e "$name" ] && echo "::notice::$name must be deleted by hand (GitHub does not let a workflow change workflow files)"; continue ;;
+            esac
+            if [ -e "$name" ]; then
+              git rm -q -- "$name"
+              echo "removed $name"
+              removed=$((removed + 1))
+            fi
+          done < old-files.txt
+          if [ "$removed" -eq 0 ]; then
+            echo "Nothing to remove: the repository has no old files."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -q -m "Remove files left over from older versions"
+          git push

@@ -1,0 +1,178 @@
+name: Windows EXE
+
+# Builds RoutePou-windows-x64.exe and publishes it as the Windows download.
+# Runs by itself after a push that changes the Windows app, or from the Actions tab: Run workflow.
+# Android has its own file (android.yml): the two never wait for each other.
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'routepou_windows.py'
+      - 'pairing.py'
+      - 'wg_provision.py'
+      - 'wg_supervisor.py'
+      - 'proxy_headers.py'
+      - 'i18n.py'
+      - 'routepou.ico'
+      - 'winclient/**'
+      - '*.go'
+      - 'go.mod'
+      - 'go.sum'
+      - 'VERSION'
+      - 'publish-release.sh'
+      - 'release-notes.sh'
+      - '.github/workflows/windows.yml'
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish the finished EXE as the Windows download (the latest release)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+# A newer run waits for the running one; a running build (and its publishing) is never cancelled.
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build RoutePou.exe
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+          cache-dependency-path: go.sum
+
+      - name: Install Python dependencies
+        run: python -m pip install --upgrade pip pyinstaller zxing-cpp pillow opencv-python
+
+      - name: Check the app's modules import
+        run: python -c "import i18n, pairing, wg_provision, wg_supervisor, proxy_headers, cv2, zxingcpp, PIL, tkinter, tkinter.ttk, winreg; print('imports ok')"
+
+      - name: Test the WireGuard worker (advisory)
+        continue-on-error: true
+        run: go test ./winclient
+
+      # Optional component: without the worker the EXE still runs in proxy mode.
+      - name: Build the WireGuard worker (relaywg-client.exe)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          go build -trimpath -ldflags="-s -w" -o relaywg-client.exe ./winclient
+          if (-not (Test-Path relaywg-client.exe)) { throw 'relaywg-client.exe was not produced' }
+
+      - name: Download Wintun runtime
+        id: wintun
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $zip = Join-Path $env:RUNNER_TEMP 'wintun.zip'
+          Invoke-WebRequest -Uri 'https://www.wintun.net/builds/wintun-0.14.1.zip' -OutFile $zip
+          Write-Host ("wintun-0.14.1.zip SHA-256: " + (Get-FileHash $zip -Algorithm SHA256).Hash)
+          $dir = Join-Path $env:RUNNER_TEMP 'wintun'
+          Expand-Archive -Path $zip -DestinationPath $dir -Force
+          $dll = Get-ChildItem $dir -Recurse -Filter wintun.dll | Where-Object { $_.FullName -match '[\\/]amd64[\\/]' } | Select-Object -First 1
+          if (-not $dll) { throw 'amd64 wintun.dll not found in the Wintun archive' }
+          Copy-Item $dll.FullName wintun.dll
+
+      - name: Build RoutePou.exe
+        shell: pwsh
+        run: |
+          $full = ((Test-Path relaywg-client.exe) -and (Test-Path wintun.dll))
+          $a = @('--noconfirm', '--clean', '--onefile', '--windowed', '--icon', 'routepou.ico',
+                 '--collect-all', 'zxingcpp', '--collect-all', 'PIL', '--collect-all', 'cv2',
+                 # tkinter.ttk is also imported with a plain import in routepou_windows.py. Declared here as well, because an
+                 # EXE without it stops at start-up with "No module named 'tkinter.ttk'".
+                 '--hidden-import', 'tkinter.ttk', '--name', 'RoutePou')
+          if ($full) { $a += @('--add-binary', 'relaywg-client.exe;.', '--add-binary', 'wintun.dll;.') }
+          else { Write-Host '::warning::Worker or Wintun missing: building proxy-mode-only EXE.' }
+          $a += 'routepou_windows.py'
+          pyinstaller @a
+          if ($LASTEXITCODE -ne 0) { throw 'pyinstaller failed' }
+          # The EXE must contain tkinter.ttk, otherwise it fails when started (a window appears only on the user's PC).
+          $toc = Get-ChildItem build\RoutePou -Filter *.toc -ErrorAction SilentlyContinue
+          if ($toc) {
+            if (-not (Select-String -Path $toc.FullName -Pattern 'tkinter.ttk' -Quiet)) { throw 'tkinter.ttk is missing from the EXE' }
+          } else { Write-Host '::warning::PyInstaller table-of-contents files not found; skipped the tkinter.ttk check.' }
+          $exe = Get-Item dist\RoutePou.exe
+          if ($exe.Length -lt 5MB) { throw "RoutePou.exe is suspiciously small ($($exe.Length) bytes)" }
+          New-Item -ItemType Directory -Force dist-out | Out-Null
+          Copy-Item $exe.FullName "dist-out\RoutePou-windows-x64.exe"
+          $state = if ($full) { 'included' } else { 'missing' }
+          "windows_full_tunnel=$state" | Out-File dist-out\info-windows.txt -Encoding ascii
+          "### Windows`n- Full Tunnel worker: **$state**" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          Get-ChildItem dist-out | Format-Table Name, Length
+
+      # Start the finished EXE once, the way a user would. The window opens for a moment and closes again; exit code 0
+      # means that every module the program needs is inside the EXE. This check would have caught the
+      # "No module named 'tkinter.ttk'" error before anyone downloaded the file.
+      # Advisory: a runner that cannot open windows must not keep a good EXE from being published. The result is
+      # written to the run Summary, and a failure shows as a warning.
+      - name: Start the finished EXE once (self-test, advisory)
+        id: selftest
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          python -c "import tkinter; r = tkinter.Tk(); r.destroy()"
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host '::warning::This runner cannot open a window, so the EXE start test was skipped.'
+            "- EXE start test: **skipped** (the runner cannot open windows)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+            exit 0
+          }
+          $p = Start-Process -FilePath (Resolve-Path dist-out\RoutePou-windows-x64.exe).Path -ArgumentList '--selftest' -PassThru
+          if (-not $p.WaitForExit(60000)) {
+            $p.Kill()
+            throw 'The EXE did not close within 60 seconds. It probably showed an error window instead of starting.'
+          }
+          $report = Join-Path ([IO.Path]::GetTempPath()) 'routepou-selftest.txt'
+          if (Test-Path $report) { Get-Content $report | ForEach-Object { Write-Host $_ } }
+          if ($p.ExitCode -ne 0) { throw "The EXE stopped with exit code $($p.ExitCode) when it was started." }
+          Write-Host 'The EXE started and closed normally.'
+          "- EXE start test: **passed** (the finished RoutePou.exe opened its window and closed normally)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
+      - name: Report a failed EXE start test
+        if: steps.selftest.outcome == 'failure'
+        shell: pwsh
+        run: |
+          Write-Host '::warning::The finished EXE did not pass its start test. Open the self-test step above to see why.'
+          "- EXE start test: **FAILED**. The EXE was still built; read the self-test step before sharing it." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RoutePou-Windows
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            dist-out/*.exe
+            dist-out/info-windows.txt
+
+  publish:
+    name: Publish the Windows download
+    needs: build
+    # After a push to main/master, or after Run workflow with "publish" ticked.
+    if: ${{ success() && (github.event_name == 'push' || inputs.publish) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: RoutePou-Windows
+          path: artifacts
+      - run: bash publish-release.sh artifacts/RoutePou-windows-x64.exe
