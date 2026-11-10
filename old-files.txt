@@ -1,0 +1,35 @@
+# Files that older versions of RoutePou had and the project does not use any more. One path per line.
+#
+# GitHub's web upload never deletes files, so these stay in the repository until they are removed:
+#   - the CI jobs ("Remove leftovers") delete them in their own checkout, so they never end up in a build or a test;
+#   - Actions, "Remove old files", Run workflow, deletes them from the repository itself (except the workflow files
+#     below, which GitHub only lets you delete by hand).
+# A test checks that none of these files is part of the project.
+
+# the old web app (PWA) and its test
+test_pwa.py
+app.js
+app.css
+strings.js
+sw.js
+manifest.webmanifest
+icon-512.png
+icon-maskable-512.png
+btn-web.png
+
+# the old website fonts (the site now uses Vazirmatn)
+Estedad-Regular.woff2
+Estedad-Medium.woff2
+Estedad-Bold.woff2
+Estedad-ExtraBold.woff2
+Inter-Regular.woff
+Inter-SemiBold.woff
+Inter-Bold.woff
+Inter-ExtraBold.woff
+
+# a placeholder that is not a valid Android resource
+res/drawable-nodpi/none
+
+# the old single workflow (replaced by tests.yml, windows.yml, android.yml): delete by hand
+.github/workflows/build.yml
+.github/workflows/build.xml

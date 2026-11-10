@@ -175,14 +175,15 @@ def test_images_exist_with_the_expected_size():
 
 
 def test_readme_download_buttons_match_the_names_the_workflow_publishes():
-    workflow = (ROOT / ".github/workflows/build.yml").read_text(encoding="utf-8")
+    workflows = {name: (ROOT / f".github/workflows/{name}.yml").read_text(encoding="utf-8") for name in ("windows", "android")}
+    publish = (ROOT / "publish-release.sh").read_text(encoding="utf-8")
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     readme_fa = (ROOT / "README.fa.md").read_text(encoding="utf-8")
-    for name in ("RoutePou-android.apk", "RoutePou-windows-x64.exe"):
+    for name, workflow in (("RoutePou-android.apk", workflows["android"]), ("RoutePou-windows-x64.exe", workflows["windows"])):
         assert name in workflow
         for doc in (readme, readme_fa, INDEX):
             assert f"{RELEASE}/{name}" in doc, name
-    assert "prerelease: false" in workflow and "make_latest: true" in workflow
+    assert "--prerelease=false" in publish and "--latest" in publish
     for doc in (readme, readme_fa):
         for img in re.findall(r'src="([^"]+\.png)"', doc):
             if not img.startswith("http"):

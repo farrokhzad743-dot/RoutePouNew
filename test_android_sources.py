@@ -147,3 +147,34 @@ def test_cross_file_references_resolve_within_the_package():
                  "WireGuardEngine", "WireGuardService", "ProxyService"):
         assert name in activity and name in declared, name
     assert not re.search(r"^import com\.pou\.routepou\.\w+\.", activity, re.M)
+
+
+def test_every_persian_text_has_an_english_twin_and_the_language_button_is_wired():
+    """The app has a language button (Persian/English). A Persian string outside `Lang.t("fa", "en")` would stay
+    Persian when the language is English."""
+    pair = re.compile(r'Lang\.t\(\s*"((?:[^"\\]|\\.)*)"\s*,\s*"((?:[^"\\]|\\.)*)"\s*\)')
+    persian = re.compile(r"[؀-ۿ]")
+    for path in KOTLIN:
+        source = path.read_text(encoding="utf-8")
+        if path.name == "RoutePouLang.kt":
+            continue
+        calls = source.count("Lang.t(")
+        pairs = pair.findall(source)
+        assert len(pairs) == calls, f"{path.name}: a Lang.t( call is not two plain string literals"
+        for fa, en in pairs:
+            assert persian.search(fa), f"{path.name}: the first text is not Persian: {fa!r}"
+            assert not persian.search(en), f"{path.name}: the second text is not English: {en!r}"
+        outside = pair.sub("", source)
+        for number, line in enumerate(outside.splitlines(), 1):
+            code = line.split("//")[0]
+            if persian.search(code) and '"فارسی"' not in code:
+                raise AssertionError(f"{path.name}:{number}: Persian text outside Lang.t: {line.strip()}")
+    activity = (ROOT / "MainActivity.kt").read_text(encoding="utf-8")
+    assert "Lang.load(this)" in activity
+    assert 'Lang.save(this, if (Lang.isFa) "en" else "fa")' in activity
+    assert '"English"' in activity and '"فارسی"' in activity
+    assert "LAYOUT_DIRECTION_RTL" in activity and "LAYOUT_DIRECTION_LTR" in activity
+    assert "TEXT_DIRECTION_FIRST_STRONG" in activity and "TEXT_DIRECTION_LOCALE" not in activity
+    assert "Lang.load(this)" in (ROOT / "WireGuardService.kt").read_text(encoding="utf-8")
+    # the status card is a state that is drawn again after a language change (a running proxy must not look idle)
+    assert "private fun renderStatus()" in activity and "status = Status.PROXY_RUNNING; renderStatus()" in activity

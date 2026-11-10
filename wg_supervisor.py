@@ -14,6 +14,8 @@ import time
 from ctypes import wintypes
 from pathlib import Path
 
+from i18n import t
+
 class WorkerError(RuntimeError):
     pass
 
@@ -41,7 +43,7 @@ class WindowsWireGuardSession:
 
     def _api(self):
         if os.name != "nt":
-            raise WorkerError("تونل کامل RoutePou فقط روی Windows 10/11 قابل اجراست.")
+            raise WorkerError(t("تونل کامل RoutePou فقط روی Windows 10/11 قابل اجراست.", "The RoutePou full tunnel only runs on Windows 10/11."))
         self._kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
         self._kernel32.CreateNamedPipeW.restype = wintypes.HANDLE
         self._kernel32.CreateNamedPipeW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD,
@@ -68,7 +70,7 @@ class WindowsWireGuardSession:
             buf = ctypes.create_string_buffer(chunk)
             ok = self._kernel32.WriteFile(self._handle, buf, len(chunk), ctypes.byref(written), None)
             if not ok or written.value == 0:
-                raise WorkerError(f"ارسال تنظیمات به موتور WireGuard ناموفق بود (WinError {ctypes.get_last_error()}).")
+                raise WorkerError(t(f"ارسال تنظیمات به موتور WireGuard ناموفق بود (WinError {ctypes.get_last_error()}).", f"Sending the settings to the WireGuard engine failed (WinError {ctypes.get_last_error()})."))
             offset += written.value
 
     def _read_line(self, timeout_seconds=30):
@@ -79,7 +81,7 @@ class WindowsWireGuardSession:
             ok = self._kernel32.PeekNamedPipe(self._handle, None, 0, None, ctypes.byref(available), None)
             if not ok:
                 code = ctypes.get_last_error()
-                raise WorkerError(f"ارتباط با موتور WireGuard قطع شد (WinError {code}).")
+                raise WorkerError(t(f"ارتباط با موتور WireGuard قطع شد (WinError {code}).", f"The connection to the WireGuard engine was lost (WinError {code})."))
             if available.value == 0:
                 time.sleep(0.05)
                 continue
@@ -90,7 +92,7 @@ class WindowsWireGuardSession:
                 code = ctypes.get_last_error()
                 if code == self.ERROR_MORE_DATA:
                     continue
-                raise WorkerError(f"خواندن پاسخ موتور WireGuard ناموفق بود (WinError {code}).")
+                raise WorkerError(t(f"خواندن پاسخ موتور WireGuard ناموفق بود (WinError {code}).", f"Reading the WireGuard engine's reply failed (WinError {code})."))
             if read.value:
                 byte = buf.raw[:1]
                 if byte == b"\n":
@@ -100,22 +102,22 @@ class WindowsWireGuardSession:
                 if byte != b"\r":
                     result.extend(byte)
                 if len(result) > 2048:
-                    raise WorkerError("پاسخ موتور WireGuard بیش از حد طولانی است.")
-        raise WorkerError("در زمان تعیین‌شده پاسخی از موتور WireGuard دریافت نشد.")
+                    raise WorkerError(t("پاسخ موتور WireGuard بیش از حد طولانی است.", "The WireGuard engine's reply is too long."))
+        raise WorkerError(t("در زمان تعیین‌شده پاسخی از موتور WireGuard دریافت نشد.", "No reply came from the WireGuard engine in time."))
 
     def start(self, ipc_config: str, *, dns: str = "1.1.1.1"):
         if self._connected or self._handle:
-            raise WorkerError("یک تونل RoutePou از قبل فعال است.")
+            raise WorkerError(t("یک تونل RoutePou از قبل فعال است.", "A RoutePou tunnel is already active."))
         if not self.worker_path.is_file():
-            raise WorkerError("فایل موتور ویندوز relaywg-client.exe در بسته برنامه پیدا نشد.")
+            raise WorkerError(t("فایل موتور ویندوز relaywg-client.exe در بسته برنامه پیدا نشد.", "The Windows engine file relaywg-client.exe is not inside the program."))
         if not ipc_config.endswith("\n") or "private_key=" not in ipc_config:
-            raise WorkerError("تنظیمات امن WireGuard نامعتبر است.")
+            raise WorkerError(t("تنظیمات امن WireGuard نامعتبر است.", "The WireGuard security settings are not valid."))
         # Accept only a literal IP for DNS; never pass arbitrary shell text.
         import ipaddress
         try:
             dns = str(ipaddress.ip_address(dns))
         except ValueError as exc:
-            raise WorkerError("نشانی DNS نامعتبر است.") from exc
+            raise WorkerError(t("نشانی DNS نامعتبر است.", "The DNS address is not valid.")) from exc
         self._api()
         self._pipe_name = "RoutePou-" + secrets.token_hex(16)
         pipe_path = "\\\\.\\pipe\\" + self._pipe_name
@@ -125,7 +127,7 @@ class WindowsWireGuardSession:
             1, 65536, 65536, 0, None)
         if self._handle == self.INVALID_HANDLE_VALUE:
             self._handle = None
-            raise WorkerError(f"ساخت کانال امن ناموفق بود (WinError {ctypes.get_last_error()}).")
+            raise WorkerError(t(f"ساخت کانال امن ناموفق بود (WinError {ctypes.get_last_error()}).", f"Creating the secure channel failed (WinError {ctypes.get_last_error()})."))
 
         # ShellExecute 'runas' is intentionally used for adapter/routes. The
         # private configuration is delivered only after elevation over the pipe.
@@ -137,13 +139,13 @@ class WindowsWireGuardSession:
         result = shell32.ShellExecuteW(None, "runas", str(self.worker_path), args, str(self.worker_path.parent), 0)
         if ctypes.cast(result, ctypes.c_void_p).value <= 32:
             self.close()
-            raise WorkerError("اجرای مدیر سیستم لغو شد یا موتور ویندوز اجرا نشد.")
+            raise WorkerError(t("اجرای مدیر سیستم لغو شد یا موتور ویندوز اجرا نشد.", "The administrator prompt was cancelled, or the Windows engine did not start."))
 
         connected = self._kernel32.ConnectNamedPipe(self._handle, None)
         if not connected and ctypes.get_last_error() != self.ERROR_PIPE_CONNECTED:
             code = ctypes.get_last_error()
             self.close()
-            raise WorkerError(f"اتصال موتور به کانال امن ناموفق بود (WinError {code}).")
+            raise WorkerError(t(f"اتصال موتور به کانال امن ناموفق بود (WinError {code}).", f"The engine could not connect to the secure channel (WinError {code})."))
 
         self._write((ipc_config + "END-CONFIG\n").encode("ascii"))
         deadline = time.monotonic() + 30
@@ -156,12 +158,12 @@ class WindowsWireGuardSession:
                 return
             if line == "NO-HANDSHAKE":
                 self.close()
-                raise WorkerError("گوشی پاسخ WireGuard نداد. مطمئن شوید گوشی و ویندوز روی یک شبکه‌اند (یک وای‌فای، یا هات‌اسپات گوشی)، «جداسازی کلاینت‌ها» در روتر خاموش است، و QR تازه بگیرید.")
+                raise WorkerError(t("گوشی پاسخ WireGuard نداد. مطمئن شوید گوشی و ویندوز روی یک شبکه‌اند (یک وای‌فای، یا هات‌اسپات گوشی)، «جداسازی کلاینت‌ها» در روتر خاموش است، و QR تازه بگیرید.", "The phone did not answer WireGuard. Make sure the phone and the PC are on the same network (one Wi-Fi, or the phone's hotspot), that \"client isolation\" is off on the router, and get a fresh QR."))
             if line == "LEAK-PROTECTION-FAILED":
                 self.close()
-                raise WorkerError("محافظت نشت ترافیک در ویندوز فعال نشد؛ برای جلوگیری از اتصال ناامن، تونل لغو شد.")
+                raise WorkerError(t("محافظت نشت ترافیک در ویندوز فعال نشد؛ برای جلوگیری از اتصال ناامن، تونل لغو شد.", "Leak protection could not be turned on in Windows; the tunnel was cancelled to avoid an unsafe connection."))
         self.close()
-        raise WorkerError("تونل در مهلت مقرر Handshake انجام نداد.")
+        raise WorkerError(t("تونل در مهلت مقرر Handshake انجام نداد.", "The tunnel did not complete the handshake in time."))
 
     def _monitor_worker(self):
         """Consume post-READY worker events so the UI cannot stay falsely connected."""

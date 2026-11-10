@@ -20,9 +20,9 @@ class AndroidUpstreamMonitor(context: Context, private val onChanged: (Snapshot)
         val networkHandle: Long
     ) {
         fun userMessage(): String = when {
-            !available -> "اتصال اینترنت گوشی در دسترس نیست؛ تونل آماده عبور ترافیک نیست."
-            !validated -> "شبکه پیدا شد، اما دسترسی اینترنت هنوز تأیید نشده است."
-            else -> "اینترنت گوشی آماده است؛ عبور واقعی ترافیک باید جداگانه آزمایش شود."
+            !available -> Lang.t("اتصال اینترنت گوشی در دسترس نیست؛ تونل آماده عبور ترافیک نیست.", "The phone has no internet connection; the tunnel cannot carry traffic.")
+            !validated -> Lang.t("شبکه پیدا شد، اما دسترسی اینترنت هنوز تأیید نشده است.", "A network was found, but internet access is not confirmed yet.")
+            else -> Lang.t("اینترنت گوشی آماده است؛ عبور واقعی ترافیک باید جداگانه آزمایش شود.", "The phone's internet is ready. Real traffic still has to be tested separately.")
         }
     }
 

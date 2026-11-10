@@ -5,6 +5,8 @@ from pairing import parse_pairing_payload, describe_connect_error
 from proxy_headers import rewrite_request_head
 from wg_provision import parse_qr_to_windows_ipc
 from wg_supervisor import WindowsWireGuardSession, WorkerError
+import i18n
+from i18n import t
 from tkinter import messagebox
 from tkinter import ttk  # a plain import: PyInstaller bundles it. (__import__() is invisible to it)
 import winreg
@@ -20,6 +22,7 @@ wg_session = None
 full_tunnel_ipc = None
 full_tunnel_meta = None
 stop_event = threading.Event()
+i18n.load()   # the language chosen last time (Persian the first time)
 previous = {}
 active_sockets = set()
 socket_lock = threading.Lock()
@@ -220,17 +223,17 @@ def connect():
     phone = ip.get().strip(); token = key_var.get().strip(); port = port_var.get().strip(); fingerprint = fingerprint_var.get().strip()
     try:
         if not phone:
-            raise ValueError("ابتدا QR را اسکن کنید یا IP گوشی را وارد کنید.")
+            raise ValueError(t("ابتدا QR را اسکن کنید یا IP گوشی را وارد کنید.", "Scan the QR first, or enter the phone's IP."))
         socket.inet_aton(phone)
         if not token or len(token) < 16 or not port.isdigit() or not 1 <= int(port) <= 65535 or len("".join(c for c in fingerprint if c in "0123456789abcdefABCDEF")) != 64:
-            raise ValueError("اطلاعات Pairing ناقص یا نامعتبر است. کد اتصال را دوباره وارد کنید.")
+            raise ValueError(t("اطلاعات Pairing ناقص یا نامعتبر است. کد اتصال را دوباره وارد کنید.", "The pairing details are incomplete or not valid. Enter the connection code again."))
     except Exception as exc:
-        messagebox.showerror("اطلاعات اتصال", str(exc))
+        messagebox.showerror(t("اطلاعات اتصال", "Connection details"), str(exc))
         return
 
     connect.busy = True
     connect_button.configure(state="disabled")
-    set_status("در حال بررسی اتصال به گوشی…", "working")
+    set_status(("در حال بررسی اتصال به گوشی…", "Checking the connection to the phone…"), "working")
 
     def worker():
         try:
@@ -243,10 +246,10 @@ def connect():
             write_reg("ProxyServer", f"http={LOCAL_HOST}:{LOCAL_HTTP_PORT};https={LOCAL_HOST}:{LOCAL_HTTP_PORT}", winreg.REG_SZ)
             write_reg("ProxyOverride", "localhost;127.*;<local>", winreg.REG_SZ)
             refresh_windows()
-            root.after(0, lambda: set_status("متصل به گوشی · پراکسی ویندوز فعال است", "connected"))
+            root.after(0, lambda: set_status(("متصل به گوشی · پراکسی ویندوز فعال است", "Connected to the phone · the Windows proxy is on"), "connected"))
         except Exception as exc:
             stop_event.set()
-            root.after(0, lambda err=describe_connect_error(exc): (set_status("اتصال برقرار نشد", "error"), messagebox.showerror("RoutePou", err)))
+            root.after(0, lambda err=describe_connect_error(exc): (set_status(("اتصال برقرار نشد", "Could not connect"), "error"), messagebox.showerror("RoutePou", err)))
         finally:
             connect.busy = False
             root.after(0, lambda: connect_button.configure(state="normal"))
@@ -277,7 +280,7 @@ def disconnect():
         except OSError:
             pass
     previous.clear(); refresh_windows()
-    set_status("قطع اتصال · تنظیمات قبلی ویندوز بازیابی شد", "idle")
+    set_status(("قطع اتصال · تنظیمات قبلی ویندوز بازیابی شد", "Disconnected · the previous Windows settings were restored"), "idle")
 
 
 # ---------------------------------------------------------------------------
@@ -286,7 +289,7 @@ def disconnect():
 # it does not claim to provide a full-device WireGuard tunnel yet.
 # ---------------------------------------------------------------------------
 root = tk.Tk()
-root.title("RoutePou | اتصال گوشی به ویندوز")
+root.title(t("RoutePou | اتصال گوشی به ویندوز", "RoutePou | Phone to Windows"))
 root.geometry("780x820")
 root.minsize(700, 740)
 root.configure(bg="#0d0a0f")
@@ -326,6 +329,21 @@ brand.pack(side="left", anchor="w")
 tk.Label(brand, text="RoutePou", font=(FONT, 28, "bold"), fg=COLORS["text"], bg=COLORS["bg"]).pack(anchor="w")
 tk.Label(brand, text="PHONE  →  WINDOWS", font=(FONT, 9, "bold"), fg=COLORS["muted"], bg=COLORS["bg"]).pack(anchor="w", pady=(2, 0))
 
+# Texts that change with the language: (widget, option, Persian, English). set_language() writes them all again.
+_translatable = []
+
+
+def tr(widget, fa, en, option="text"):
+    """Give a widget its text in the current language and remember it for the language button."""
+    widget.configure(**{option: t(fa, en)})
+    _translatable.append((widget, option, fa, en))
+    return widget
+
+
+def theme_button_text():
+    return t("حالت روشن", "Light mode") if DARK_MODE else t("حالت تاریک", "Dark mode")
+
+
 def apply_theme():
     global DARK_MODE, COLORS
     old = dict(COLORS)
@@ -343,11 +361,28 @@ def apply_theme():
         except Exception: pass
         for child in widget.winfo_children(): recolor(child)
     recolor(root)
-    theme_button.configure(text="حالت روشن" if DARK_MODE else "حالت تاریک")
+    theme_button.configure(text=theme_button_text())
 
-theme_button = tk.Button(header, text="حالت روشن", command=apply_theme, bg=COLORS["panel2"], fg=COLORS["text"],
+theme_button = tk.Button(header, text=theme_button_text(), command=apply_theme, bg=COLORS["panel2"], fg=COLORS["text"],
                          activebackground=COLORS["border"], relief="flat", padx=12, pady=8, cursor="hand2")
 theme_button.pack(side="right", anchor="n", padx=(8, 0))
+
+
+def set_language():
+    """The language button: switch between Persian and English, keep the choice, and redraw every text."""
+    i18n.save("en" if i18n.LANG == "fa" else "fa")
+    for widget, option, fa, en in _translatable:
+        widget.configure(**{option: t(fa, en)})
+    root.title(t("RoutePou | اتصال گوشی به ویندوز", "RoutePou | Phone to Windows"))
+    language_button.configure(text="English" if i18n.LANG == "fa" else "فارسی")
+    theme_button.configure(text=theme_button_text())
+    set_status(_last_status["message"], _last_status["state"])
+
+
+language_button = tk.Button(header, text="English" if i18n.LANG == "fa" else "فارسی", command=set_language,
+                            bg=COLORS["panel2"], fg=COLORS["text"], activebackground=COLORS["border"],
+                            relief="flat", padx=12, pady=8, cursor="hand2")
+language_button.pack(side="right", anchor="n", padx=(8, 0))
 tk.Label(header, text="BETA " + APP_VERSION.split("-")[0], font=(FONT, 9, "bold"), fg=COLORS["accent"], bg=COLORS["panel2"], padx=12, pady=7).pack(side="right", anchor="n")
 
 status_card = tk.Frame(outer, bg=COLORS["panel"], highlightthickness=1, highlightbackground=COLORS["border"])
@@ -358,25 +393,33 @@ status_dot = tk.Label(status_inner, text="●", font=(FONT, 18), fg=COLORS["red"
 status_dot.pack(side="left", padx=(0, 12))
 status_text_frame = tk.Frame(status_inner, bg=COLORS["panel"])
 status_text_frame.pack(side="left", fill="x", expand=True)
-tk.Label(status_text_frame, text="وضعیت اتصال", font=(FONT, 9), fg=COLORS["muted"], bg=COLORS["panel"]).pack(anchor="w")
-status = tk.Label(status_text_frame, text="آماده اتصال", font=(FONT, 12, "bold"), fg=COLORS["text"], bg=COLORS["panel"])
+tr(tk.Label(status_text_frame, font=(FONT, 9), fg=COLORS["muted"], bg=COLORS["panel"]), "وضعیت اتصال", "Connection status").pack(anchor="w")
+status = tk.Label(status_text_frame, text=t("آماده اتصال", "Ready to connect"), font=(FONT, 12, "bold"), fg=COLORS["text"], bg=COLORS["panel"])
 status.pack(anchor="w", pady=(2, 0))
+_last_status = {"message": ("آماده اتصال", "Ready to connect"), "state": "idle"}
 
 
 def set_status(message, state="idle"):
+    """`message` is a (Persian, English) pair, or a plain text that is shown as it is (for example a line from the worker)."""
+    _last_status["message"], _last_status["state"] = message, state
+    if isinstance(message, tuple):
+        message = t(*message)
     palette = {"idle": COLORS["red"], "working": COLORS["yellow"], "connected": COLORS["green"], "error": COLORS["red"]}
     status.configure(text=message, fg=COLORS["text"] if state == "working" else palette.get(state, COLORS["red"]))
     status_dot.configure(fg=palette.get(state, COLORS["red"]))
 
 
 def card(parent, title, subtitle=None):
+    """`title` and `subtitle` are (Persian, English) pairs."""
     box = tk.Frame(parent, bg=COLORS["panel"], highlightthickness=1, highlightbackground=COLORS["border"])
-    tk.Label(box, text=title, font=(FONT, 12, "bold"), fg=COLORS["text"], bg=COLORS["panel"]).pack(anchor="w", padx=18, pady=(15, 2))
+    tr(tk.Label(box, font=(FONT, 12, "bold"), fg=COLORS["text"], bg=COLORS["panel"]), *title).pack(anchor="w", padx=18, pady=(15, 2))
     if subtitle:
-        tk.Label(box, text=subtitle, font=(FONT, 9), fg=COLORS["muted"], bg=COLORS["panel"], wraplength=650, justify="left").pack(anchor="w", padx=18, pady=(0, 10))
+        tr(tk.Label(box, font=(FONT, 9), fg=COLORS["muted"], bg=COLORS["panel"], wraplength=650, justify="left"), *subtitle).pack(anchor="w", padx=18, pady=(0, 10))
     return box
 
-pair_card = card(outer, "۱. اتصال گوشی", "گوشی و ویندوز را به یک وای‌فای وصل کنید (هات‌اسپات لازم نیست)، VPN گوشی را روشن کنید و QR داخل برنامهٔ اندروید را اسکن کنید یا تصویر QR را انتخاب کنید. وارد کردن IP لازم نیست.")
+pair_card = card(outer, ("۱. اتصال گوشی", "1. Connect the phone"),
+                 ("گوشی و ویندوز را به یک وای‌فای وصل کنید (هات‌اسپات لازم نیست)، VPN گوشی را روشن کنید و QR داخل برنامهٔ اندروید را اسکن کنید یا تصویر QR را انتخاب کنید. وارد کردن IP لازم نیست.",
+                  "Put the phone and the PC on the same Wi-Fi (a hotspot is not needed), turn on the phone's VPN, then scan the QR in the Android app or choose a picture of the QR. You do not need to type an IP."))
 pair_card.pack(fill="x", pady=(0, 14))
 form = tk.Frame(pair_card, bg=COLORS["panel"])
 form.pack(fill="x", padx=18, pady=(0, 16))
@@ -389,7 +432,7 @@ qr_var = tk.StringVar()
 
 def make_field(parent, label, variable, *, secret=False, width=30):
     wrap = tk.Frame(parent, bg=COLORS["panel"])
-    tk.Label(wrap, text=label, font=(FONT, 9, "bold"), fg=COLORS["muted"], bg=COLORS["panel"]).pack(anchor="w", pady=(7, 5))
+    tr(tk.Label(wrap, font=(FONT, 9, "bold"), fg=COLORS["muted"], bg=COLORS["panel"]), *label).pack(anchor="w", pady=(7, 5))
     entry = tk.Entry(wrap, textvariable=variable, show="•" if secret else "", font=(FONT, 10),
                      bg=COLORS["input"], fg=COLORS["text"], insertbackground=COLORS["text"],
                      relief="flat", highlightthickness=1, highlightbackground=COLORS["border"],
@@ -397,7 +440,7 @@ def make_field(parent, label, variable, *, secret=False, width=30):
     entry.pack(fill="x", ipady=9)
     return wrap, entry
 
-qr_wrap, qr_entry = make_field(form, "کد QR (ورود خودکار پس از اسکن یا Paste)", qr_var)
+qr_wrap, qr_entry = make_field(form, ("کد QR (ورود خودکار پس از اسکن یا Paste)", "QR code (filled in automatically after a scan or Paste)"), qr_var)
 qr_wrap.pack(fill="x")
 
 def import_pairing_qr():
@@ -406,28 +449,28 @@ def import_pairing_qr():
     try:
         if payload.startswith("routepou://p/"):
             full_tunnel_ipc, full_tunnel_meta = parse_qr_to_windows_ipc(payload)
-            set_status("QR معتبر است · در حال اتصال تونل…", "working")
+            set_status(("QR معتبر است · در حال اتصال تونل…", "QR is valid · connecting the tunnel…"), "working")
             root.after(150, connect_full_tunnel)
             return
         host, qr_port, qr_key, qr_fp = parse_pairing_payload(payload)
         full_tunnel_ipc = None; full_tunnel_meta = None
         ip.set(host); port_var.set(qr_port); key_var.set(qr_key); fingerprint_var.set(qr_fp)
-        set_status("QR معتبر است · در حال اتصال خودکار…", "working")
+        set_status(("QR معتبر است · در حال اتصال خودکار…", "QR is valid · connecting automatically…"), "working")
         root.after(150, connect)
     except Exception as exc:
         full_tunnel_ipc = None; full_tunnel_meta = None
-        messagebox.showerror("کد اتصال نامعتبر", str(exc))
+        messagebox.showerror(t("کد اتصال نامعتبر", "Invalid connection code"), str(exc))
 
 
 def connect_full_tunnel():
     global wg_session
     if not full_tunnel_ipc or not full_tunnel_meta:
-        messagebox.showwarning("RoutePou", "ابتدا QR تونل کامل را از برنامه اندروید وارد کنید.")
+        messagebox.showwarning("RoutePou", t("ابتدا QR تونل کامل را از برنامه اندروید وارد کنید.", "First enter the full-tunnel QR from the Android app."))
         return
     if wg_session and wg_session.connected:
         return
     connect_button.configure(state="disabled")
-    set_status("در حال درخواست دسترسی و برقراری تونل WireGuard…", "working")
+    set_status(("در حال درخواست دسترسی و برقراری تونل WireGuard…", "Asking for permission and starting the WireGuard tunnel…"), "working")
     ipc = full_tunnel_ipc
     dns = full_tunnel_meta["dns"]
     def worker():
@@ -438,19 +481,19 @@ def connect_full_tunnel():
                 worker_path = Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent)) / "relaywg-client.exe"
             def worker_status(line):
                 if line == "PEER-LOST":
-                    root.after(0, lambda: set_status("ارتباط گوشی قطع شده · ترافیک مسدود می‌ماند", "error"))
+                    root.after(0, lambda: set_status(("ارتباط گوشی قطع شده · ترافیک مسدود می‌ماند", "Lost the phone · traffic stays blocked"), "error"))
                 elif line == "PEER-BACK":
-                    root.after(0, lambda: set_status("ارتباط گوشی بازیابی شد", "connected"))
+                    root.after(0, lambda: set_status(("ارتباط گوشی بازیابی شد", "The phone is back"), "connected"))
                 else:
                     root.after(0, lambda msg=line: set_status(msg, "working"))
             def worker_exit(reason):
-                root.after(0, lambda: set_status("تونل متوقف شد · " + reason, "error"))
+                root.after(0, lambda: set_status(("تونل متوقف شد · " + reason, "Tunnel stopped · " + reason), "error"))
             session = WindowsWireGuardSession(worker_path, on_status=worker_status, on_exit=worker_exit)
             session.start(ipc, dns=dns)
             wg_session = session
-            root.after(0, lambda: set_status("تونل فعال است · Handshake تأیید شد · مانیتورینگ ارتباط روشن است", "connected"))
+            root.after(0, lambda: set_status(("تونل فعال است · Handshake تأیید شد · مانیتورینگ ارتباط روشن است", "Tunnel is on · handshake confirmed · connection monitoring is on"), "connected"))
         except Exception as exc:
-            root.after(0, lambda err=str(exc): (set_status("تونل برقرار نشد", "error"), messagebox.showerror("RoutePou WireGuard", err)))
+            root.after(0, lambda err=str(exc): (set_status(("تونل برقرار نشد", "The tunnel did not start"), "error"), messagebox.showerror("RoutePou WireGuard", err)))
         finally:
             root.after(0, lambda: connect_button.configure(state="normal"))
     threading.Thread(target=worker, daemon=True).start()
@@ -461,7 +504,7 @@ def disconnect_full_tunnel():
     if wg_session:
         wg_session.close()
         wg_session = None
-    set_status("تونل کامل قطع شد", "idle")
+    set_status(("تونل کامل قطع شد", "The full tunnel is off"), "idle")
 
 qr_actions = tk.Frame(form, bg=COLORS["panel"])
 qr_actions.pack(fill="x", pady=(8, 4))
@@ -470,19 +513,19 @@ def paste_pairing():
         qr_var.set(root.clipboard_get())
         import_pairing_qr()
     except tk.TclError:
-        messagebox.showwarning("Clipboard", "متنی در حافظه موقت ویندوز پیدا نشد.")
+        messagebox.showwarning("Clipboard", t("متنی در حافظه موقت ویندوز پیدا نشد.", "No text was found on the Windows clipboard."))
 
 def scan_qr_camera():
     try:
         import cv2
         import zxingcpp
     except ImportError:
-        messagebox.showerror("اسکن دوربین", "ماژول دوربین/QR در این نسخه موجود نیست.")
+        messagebox.showerror(t("اسکن دوربین", "Camera scan"), t("ماژول دوربین/QR در این نسخه موجود نیست.", "The camera/QR module is not part of this version."))
         return
     camera = cv2.VideoCapture(0, cv2.CAP_DSHOW if hasattr(cv2, "CAP_DSHOW") else 0)
     if not camera.isOpened():
         camera.release()
-        messagebox.showerror("اسکن دوربین", "دوربین در دسترس نیست؛ از گزینه انتخاب تصویر QR استفاده کنید.")
+        messagebox.showerror(t("اسکن دوربین", "Camera scan"), t("دوربین در دسترس نیست؛ از گزینه انتخاب تصویر QR استفاده کنید.", "The camera is not available. Use \"Choose a QR picture\" instead."))
         return
     found = None
     try:
@@ -506,7 +549,7 @@ def scan_qr_camera():
         import_pairing_qr()
 
 def scan_qr_image():
-    path = filedialog.askopenfilename(title="انتخاب تصویر QR گوشی", filetypes=[("Images", "*.png *.jpg *.jpeg *.bmp *.webp")])
+    path = filedialog.askopenfilename(title=t("انتخاب تصویر QR گوشی", "Choose the picture of the phone's QR"), filetypes=[("Images", "*.png *.jpg *.jpeg *.bmp *.webp")])
     if not path:
         return
     try:
@@ -514,64 +557,67 @@ def scan_qr_image():
         from PIL import Image
         results = zxingcpp.read_barcodes(Image.open(path))
         if not results:
-            raise ValueError("کد QR در تصویر پیدا نشد. تصویر واضح‌تری انتخاب کنید.")
+            raise ValueError(t("کد QR در تصویر پیدا نشد. تصویر واضح‌تری انتخاب کنید.", "No QR code was found in the picture. Choose a clearer picture."))
         qr_var.set(results[0].text)
         import_pairing_qr()
     except ImportError:
-        messagebox.showerror("اسکن QR", "ماژول اسکن QR نصب نیست. نسخه رسمی RoutePou را دوباره دریافت کنید.")
+        messagebox.showerror(t("اسکن QR", "QR scan"), t("ماژول اسکن QR نصب نیست. نسخه رسمی RoutePou را دوباره دریافت کنید.", "The QR scan module is not installed. Download the official RoutePou again."))
     except Exception as exc:
-        messagebox.showerror("اسکن QR", str(exc))
+        messagebox.showerror(t("اسکن QR", "QR scan"), str(exc))
 
-tk.Button(qr_actions, text="اسکن با دوربین", command=scan_qr_camera, bg=COLORS["accent"], fg="white",
-          activebackground=COLORS["accent_hover"], activeforeground="white", relief="flat", padx=12, pady=7, cursor="hand2").pack(side="left")
-tk.Button(qr_actions, text="انتخاب تصویر QR", command=scan_qr_image, bg=COLORS["panel2"], fg=COLORS["text"],
-          activebackground=COLORS["border"], activeforeground=COLORS["text"], relief="flat", padx=12, pady=7, cursor="hand2").pack(side="left", padx=8)
-tk.Button(qr_actions, text="خواندن از Clipboard", command=paste_pairing, bg=COLORS["panel2"], fg=COLORS["text"],
-          activebackground=COLORS["border"], activeforeground=COLORS["text"], relief="flat", padx=12, pady=7, cursor="hand2").pack(side="left", padx=8)
+tr(tk.Button(qr_actions, command=scan_qr_camera, bg=COLORS["accent"], fg="white",
+          activebackground=COLORS["accent_hover"], activeforeground="white", relief="flat", padx=12, pady=7, cursor="hand2"), "اسکن با دوربین", "Scan with the camera").pack(side="left")
+tr(tk.Button(qr_actions, command=scan_qr_image, bg=COLORS["panel2"], fg=COLORS["text"],
+          activebackground=COLORS["border"], activeforeground=COLORS["text"], relief="flat", padx=12, pady=7, cursor="hand2"), "انتخاب تصویر QR", "Choose a QR picture").pack(side="left", padx=8)
+tr(tk.Button(qr_actions, command=paste_pairing, bg=COLORS["panel2"], fg=COLORS["text"],
+          activebackground=COLORS["border"], activeforeground=COLORS["text"], relief="flat", padx=12, pady=7, cursor="hand2"), "خواندن از Clipboard", "Read from the clipboard").pack(side="left", padx=8)
 
-advanced = tk.LabelFrame(form, text=" اطلاعات اتصال (در صورت نیاز دستی تکمیل کنید) ",
-                         font=(FONT, 9, "bold"), fg=COLORS["muted"], bg=COLORS["panel"],
-                         bd=1, relief="solid", labelanchor="nw", padx=12, pady=7)
-advanced_toggle = tk.Button(form, text="تنظیمات دستی پیشرفته", command=lambda: advanced.pack(fill="x", pady=(10, 0)) if not advanced.winfo_manager() else advanced.pack_forget(),
+advanced = tr(tk.LabelFrame(form, font=(FONT, 9, "bold"), fg=COLORS["muted"], bg=COLORS["panel"],
+                            bd=1, relief="solid", labelanchor="nw", padx=12, pady=7),
+              " اطلاعات اتصال (در صورت نیاز دستی تکمیل کنید) ", " Connection details (fill in by hand if needed) ")
+advanced_toggle = tr(tk.Button(form, command=lambda: advanced.pack(fill="x", pady=(10, 0)) if not advanced.winfo_manager() else advanced.pack_forget(),
                              bg=COLORS["panel2"], fg=COLORS["muted"], activebackground=COLORS["border"],
-                             relief="flat", padx=10, pady=6, cursor="hand2")
+                             relief="flat", padx=10, pady=6, cursor="hand2"), "تنظیمات دستی پیشرفته", "Advanced manual settings")
 advanced_toggle.pack(anchor="w", pady=(8, 0))
 row1 = tk.Frame(advanced, bg=COLORS["panel"]); row1.pack(fill="x")
-for label, var, secret in (("IP گوشی در شبکه", ip, False), ("پورت سرویس", port_var, False)):
+for label, var, secret in ((("IP گوشی در شبکه", "Phone IP on the network"), ip, False), (("پورت سرویس", "Service port"), port_var, False)):
     w, _ = make_field(row1, label, var, secret=secret)
     w.pack(side="left", fill="x", expand=True, padx=(0, 10))
 row2 = tk.Frame(advanced, bg=COLORS["panel"]); row2.pack(fill="x")
-w, _ = make_field(row2, "کلید Pairing", key_var, secret=True); w.pack(side="left", fill="x", expand=True, padx=(0, 10))
-w, _ = make_field(row2, "اثر انگشت TLS (SHA-256)", fingerprint_var); w.pack(side="left", fill="x", expand=True)
+w, _ = make_field(row2, ("کلید Pairing", "Pairing key"), key_var, secret=True); w.pack(side="left", fill="x", expand=True, padx=(0, 10))
+w, _ = make_field(row2, ("اثر انگشت TLS (SHA-256)", "TLS fingerprint (SHA-256)"), fingerprint_var); w.pack(side="left", fill="x", expand=True)
 
-proxy_card = card(outer, "۲. استفاده از اتصال", "پس از اتصال، پراکسی سیستم ویندوز روی HTTP/HTTPS فعال می‌شود. برنامه‌های سازگار می‌توانند از SOCKS5 به‌صورت دستی استفاده کنند.")
+proxy_card = card(outer, ("۲. استفاده از اتصال", "2. Using the connection"),
+                  ("پس از اتصال، پراکسی سیستم ویندوز روی HTTP/HTTPS فعال می‌شود. برنامه‌های سازگار می‌توانند از SOCKS5 به‌صورت دستی استفاده کنند.",
+                   "After connecting, the Windows system proxy is turned on for HTTP/HTTPS. Compatible apps can use SOCKS5 by hand."))
 proxy_card.pack(fill="x", pady=(0, 14))
 proxy_grid = tk.Frame(proxy_card, bg=COLORS["panel"]); proxy_grid.pack(fill="x", padx=18, pady=(0, 15))
-for title, value in (("پراکسی سیستم", "HTTP / HTTPS · 127.0.0.1:17878"), ("پراکسی برنامه‌ای", "SOCKS5 · 127.0.0.1:17879")):
+for title, value in ((("پراکسی سیستم", "System proxy"), "HTTP / HTTPS · 127.0.0.1:17878"), (("پراکسی برنامه‌ای", "App proxy"), "SOCKS5 · 127.0.0.1:17879")):
     cell = tk.Frame(proxy_grid, bg=COLORS["panel2"]); cell.pack(side="left", fill="x", expand=True, padx=(0, 8))
-    tk.Label(cell, text=title, font=(FONT, 9), fg=COLORS["muted"], bg=COLORS["panel2"]).pack(anchor="w", padx=12, pady=(9, 2))
+    tr(tk.Label(cell, font=(FONT, 9), fg=COLORS["muted"], bg=COLORS["panel2"]), *title).pack(anchor="w", padx=12, pady=(9, 2))
     tk.Label(cell, text=value, font=(FONT, 10, "bold"), fg=COLORS["text"], bg=COLORS["panel2"]).pack(anchor="w", padx=12, pady=(0, 10))
 
 buttons = tk.Frame(outer, bg=COLORS["bg"]); buttons.pack(fill="x", pady=(0, 14))
-connect_button = tk.Button(buttons, text="اتصال پراکسی", command=connect, bg=COLORS["accent"], fg="white",
+connect_button = tr(tk.Button(buttons, command=connect, bg=COLORS["accent"], fg="white",
                            activebackground=COLORS["accent_hover"], activeforeground="white", relief="flat",
-                           font=(FONT, 11, "bold"), padx=22, pady=12, cursor="hand2")
+                           font=(FONT, 11, "bold"), padx=22, pady=12, cursor="hand2"), "اتصال پراکسی", "Connect the proxy")
 connect_button.pack(side="left", fill="x", expand=True, padx=(0, 8))
-tk.Button(buttons, text="اتصال تونل کامل WireGuard", command=connect_full_tunnel, bg="#365fd8", fg="white",
+tr(tk.Button(buttons, command=connect_full_tunnel, bg="#365fd8", fg="white",
           activebackground="#4772ec", activeforeground="white", relief="flat",
-          font=(FONT, 10, "bold"), padx=16, pady=12, cursor="hand2").pack(side="left", fill="x", expand=True, padx=(0, 8))
-tk.Button(buttons, text="قطع تونل کامل", command=disconnect_full_tunnel, bg=COLORS["panel2"], fg=COLORS["text"],
+          font=(FONT, 10, "bold"), padx=16, pady=12, cursor="hand2"), "اتصال تونل کامل WireGuard", "Connect the WireGuard full tunnel").pack(side="left", fill="x", expand=True, padx=(0, 8))
+tr(tk.Button(buttons, command=disconnect_full_tunnel, bg=COLORS["panel2"], fg=COLORS["text"],
           activebackground=COLORS["border"], activeforeground=COLORS["text"], relief="flat",
-          font=(FONT, 9, "bold"), padx=12, pady=12, cursor="hand2").pack(side="left", fill="x", expand=True, padx=(0, 8))
-tk.Button(buttons, text="قطع پراکسی و بازیابی تنظیمات", command=disconnect, bg=COLORS["panel2"], fg=COLORS["text"],
+          font=(FONT, 9, "bold"), padx=12, pady=12, cursor="hand2"), "قطع تونل کامل", "Disconnect the full tunnel").pack(side="left", fill="x", expand=True, padx=(0, 8))
+tr(tk.Button(buttons, command=disconnect, bg=COLORS["panel2"], fg=COLORS["text"],
           activebackground=COLORS["border"], activeforeground=COLORS["text"], relief="flat",
-          font=(FONT, 10, "bold"), padx=18, pady=12, cursor="hand2").pack(side="left", fill="x", expand=True)
+          font=(FONT, 10, "bold"), padx=18, pady=12, cursor="hand2"), "قطع پراکسی و بازیابی تنظیمات", "Disconnect the proxy and restore settings").pack(side="left", fill="x", expand=True)
 
 notice = tk.Frame(outer, bg="#241d2a", highlightthickness=1, highlightbackground="#5b3448")
 notice.pack(fill="x")
-tk.Label(notice, text="محدودیت نسخه آلفا", font=(FONT, 9, "bold"), fg="#ffb4c4", bg="#241d2a").pack(anchor="w", padx=14, pady=(9, 2))
-tk.Label(notice, text="اتصال QR در این نسخه برای جفت‌سازی سریع است. حالت پراکسی و تونل WireGuard مسیرهای جداگانه‌اند؛ قبل از استفاده روزمره، انتقال واقعی ترافیک را آزمایش کنید.",
-         font=(FONT, 9), fg="#d8c4ce", bg="#241d2a", wraplength=680, justify="left").pack(anchor="w", padx=14, pady=(0, 10))
+tr(tk.Label(notice, font=(FONT, 9, "bold"), fg="#ffb4c4", bg="#241d2a"), "محدودیت نسخه آلفا", "Limits of this early version").pack(anchor="w", padx=14, pady=(9, 2))
+tr(tk.Label(notice, font=(FONT, 9), fg="#d8c4ce", bg="#241d2a", wraplength=680, justify="left"),
+   "اتصال QR در این نسخه برای جفت‌سازی سریع است. حالت پراکسی و تونل WireGuard مسیرهای جداگانه‌اند؛ قبل از استفاده روزمره، انتقال واقعی ترافیک را آزمایش کنید.",
+   "The QR connection in this version is for quick pairing. The proxy mode and the WireGuard tunnel are separate paths; test real traffic before everyday use.").pack(anchor="w", padx=14, pady=(0, 10))
 
 footer = tk.Label(outer, text=f"POU NETWORK TOOLS  •  ROUTEPOU {APP_VERSION.upper()}", font=(FONT, 8, "bold"), fg="#647492", bg=COLORS["bg"])
 footer.pack(anchor="center", pady=(12, 0))

@@ -21,6 +21,7 @@ class WireGuardService : Service() {
     private var upstreamMonitor: AndroidUpstreamMonitor? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Lang.load(this)   // the monitor's messages follow the language chosen in the app
         createChannel()
         startForeground(NOTIFICATION_ID, notification("Starting WireGuard endpoint"))
         if (intent?.action == ACTION_START) {

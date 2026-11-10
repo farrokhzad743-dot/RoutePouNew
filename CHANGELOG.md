@@ -1,7 +1,18 @@
 # Changelog
 
 ## 0.27.0-beta — Clean rebuild
-The project was rebuilt as a flat repository with a single Go module and a single workflow.
+The project was rebuilt as a flat repository with a single Go module and three independent workflows.
+
+### Added: language button in both apps
+- The Android app and the Windows app each have a language button (فارسی / English). Persian is the default; the choice is kept for the next start. Android switches the whole screen between right-to-left and left-to-right and keeps the typed text and the running status; Windows redraws every text (`i18n.py`, saved in `%APPDATA%\\RoutePou\\settings.json`). Error messages from the helpers follow the language too.
+
+### Added: Remove old files
+- `old-files.txt` lists the files that older versions left in the repository. The CI jobs ignore them in their own checkout, and the new manual workflow **Remove old files** (`cleanup.yml`) deletes them from the repository.
+
+### Changed: three workflows
+- The single `build.yml` is replaced by `tests.yml`, `windows.yml` and `android.yml`. They run independently, so a failure is easy to place, and a red Android build never holds back the Windows download (or the reverse). Delete the old `.github/workflows/build.yml` from the repository.
+- Each of the two build workflows publishes its own file by itself after a green build (push to `main`, or **Run workflow**) with `publish-release.sh`: it moves the version tag to the built commit, attaches the file and a `.sha256`, and marks the release as the latest one. The release text comes from `release-notes.sh`.
+- The EXE start test is advisory now: a runner that cannot open windows no longer blocks the download. Its result is written to the run Summary.
 
 ### Fixed (build-breaking)
 - Removed `.github/workflows/build.xml`, a stale older copy of the workflow (GitHub ignores `.xml`, and it still used version-numbered file names).

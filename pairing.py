@@ -2,6 +2,8 @@
 from ipaddress import ip_address, IPv4Address, ip_network
 from urllib.parse import urlparse, parse_qs
 
+from i18n import t
+
 def parse_pairing_payload(payload: str):
     parsed = urlparse(payload.strip())
     if parsed.scheme != "routepou" or parsed.netloc != "pair" or parsed.fragment:
@@ -31,19 +33,26 @@ def parse_pairing_payload(payload: str):
 
 
 def describe_connect_error(exc: BaseException) -> str:
-    """Turn a low-level socket error into advice the user can act on (Persian, with the raw reason kept)."""
+    """Turn a low-level socket error into advice the user can act on (in the app's language, raw reason kept)."""
     import socket
     import ssl
     raw = str(exc).strip() or exc.__class__.__name__
     if isinstance(exc, ssl.SSLError) or "fingerprint" in raw.lower() or "certificate" in raw.lower():
-        advice = ("گواهی گوشی با QR نمی‌خواند. در برنامهٔ اندروید «ساخت کلید جفت‌سازی جدید» را بزنید "
-                  "و QR تازه را اسکن کنید.")
+        advice = t("گواهی گوشی با QR نمی‌خواند. در برنامهٔ اندروید «ساخت کلید جفت‌سازی جدید» را بزنید "
+                   "و QR تازه را اسکن کنید.",
+                   "The phone's certificate does not match the QR. In the Android app tap \"Create a new pairing key\" "
+                   "and scan the fresh QR.")
     elif isinstance(exc, (socket.timeout, TimeoutError, ConnectionRefusedError)) or \
             getattr(exc, "winerror", None) in (10060, 10061, 10051, 10065) or getattr(exc, "errno", None) in (110, 111, 113, 101, 10060, 10061):
-        advice = ("به گوشی نرسیدم. بررسی کنید: ۱) گوشی و ویندوز به یک وای‌فای وصل باشند (یا ویندوز به هات‌اسپات گوشی)؛ "
-                  "۲) در برنامهٔ اندروید «شروع اشتراک‌گذاری» زده شده باشد؛ "
-                  "۳) روتر «جداسازی کلاینت‌ها / AP isolation» را خاموش داشته باشد؛ "
-                  "۴) فایروال ویندوز RoutePou را مسدود نکرده باشد.")
+        advice = t("به گوشی نرسیدم. بررسی کنید: ۱) گوشی و ویندوز به یک وای‌فای وصل باشند (یا ویندوز به هات‌اسپات گوشی)؛ "
+                   "۲) در برنامهٔ اندروید «شروع اشتراک‌گذاری» زده شده باشد؛ "
+                   "۳) روتر «جداسازی کلاینت‌ها / AP isolation» را خاموش داشته باشد؛ "
+                   "۴) فایروال ویندوز RoutePou را مسدود نکرده باشد.",
+                   "Could not reach the phone. Check: 1) the phone and the PC are on the same Wi-Fi (or the PC is on the phone's hotspot); "
+                   "2) \"Start sharing\" was tapped in the Android app; "
+                   "3) the router's \"client isolation / AP isolation\" is off; "
+                   "4) Windows Firewall is not blocking RoutePou.")
     else:
-        advice = "اتصال به گوشی برقرار نشد. QR تازه بگیرید و دوباره امتحان کنید."
+        advice = t("اتصال به گوشی برقرار نشد. QR تازه بگیرید و دوباره امتحان کنید.",
+                   "Could not connect to the phone. Get a fresh QR and try again.")
     return advice + "\n\n(" + raw + ")"

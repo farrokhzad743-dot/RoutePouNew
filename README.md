@@ -59,7 +59,7 @@ Each Android installation creates its own TLS key and certificate in the Android
 
 ## Build it yourself
 
-Every file sits in the repository root. Pushing to GitHub runs `.github/workflows/build.yml`, which tests the code and builds the APK and the EXE. Pushing a tag such as `v0.27.0-beta` publishes them as a GitHub release. Steps for maintainers: [PUBLISHING.md](PUBLISHING.md).
+Every file sits in the repository root. Pushing to GitHub runs three independent workflows in `.github/workflows/`: `tests.yml` (tests), `windows.yml` (builds and publishes the EXE) and `android.yml` (builds and publishes the APK). A green build puts its file on the Releases page by itself. Steps for maintainers: [PUBLISHING.md](PUBLISHING.md).
 
 ## License
 
