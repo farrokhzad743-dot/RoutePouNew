@@ -10,6 +10,9 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.provider.Settings
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -49,26 +52,29 @@ class MainActivity : Activity() {
     private enum class Status { READY, NO_NETWORK, PROXY_RUNNING, TUNNEL_STARTING, TUNNEL_FAILED }
     private var status = Status.READY
     private var statusError = ""
+    private lateinit var networkHelp: LinearLayout
+    private val handler = Handler(Looper.getMainLooper())
+    private var lastHost: String? = null
 
     // Kept across a rebuild of the screen (language or theme change), so nothing the user typed or opened is lost.
     private var upstreamText = ""
     private var advancedOpen = false
 
     private var darkMode = true
-    private var bg = Color.rgb(13, 10, 15)
-    private var card = Color.rgb(31, 20, 28)
-    private var muted = Color.rgb(190, 166, 180)
-    private var accent = Color.rgb(150, 25, 65)
+    private var bg = Color.rgb(15, 15, 17)
+    private var card = Color.rgb(23, 23, 26)
+    private var muted = Color.rgb(163, 163, 171)
+    private var accent = Color.rgb(208, 31, 47)
     private val green = Color.rgb(58, 205, 145)
 
     private fun applyPalette() {
         darkMode = getSharedPreferences("routepou", MODE_PRIVATE).getBoolean("dark_mode", true)
         if (darkMode) {
-            bg = Color.rgb(13, 10, 15); card = Color.rgb(31, 20, 28)
-            muted = Color.rgb(190, 166, 180); accent = Color.rgb(150, 25, 65)
+            bg = Color.rgb(15, 15, 17); card = Color.rgb(23, 23, 26)
+            muted = Color.rgb(163, 163, 171); accent = Color.rgb(208, 31, 47)
         } else {
-            bg = Color.rgb(248, 244, 247); card = Color.rgb(255, 255, 255)
-            muted = Color.rgb(112, 83, 99); accent = Color.rgb(133, 18, 56)
+            bg = Color.rgb(250, 250, 251); card = Color.rgb(255, 255, 255)
+            muted = Color.rgb(98, 98, 106); accent = Color.rgb(208, 31, 47)
         }
     }
 
@@ -151,6 +157,13 @@ class MainActivity : Activity() {
         hero.addView(text(Lang.t("نشانی شبکه", "Network address"), 11f, muted, true))
         addressView = text(Lang.t("در حال بررسی شبکه…", "Checking the network…"), 13f, Color.WHITE)
         hero.addView(addressView)
+        // Shown only while the phone has no Wi-Fi and no hotspot: the two ways to put the PC on the phone's network.
+        networkHelp = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; visibility = View.GONE }
+        networkHelp.addView(secondaryButton(Lang.t("روشن‌کردن هات‌اسپات", "Turn on hotspot")) { openNetworkSettings(true) },
+            LinearLayout.LayoutParams(0, dp(46), 1f).apply { marginEnd = dp(8) })
+        networkHelp.addView(secondaryButton(Lang.t("اتصال به وای‌فای", "Connect to Wi-Fi")) { openNetworkSettings(false) },
+            LinearLayout.LayoutParams(0, dp(46), 1f))
+        hero.addView(space(12)); hero.addView(networkHelp)
         page.addView(space(14))
 
         val modeCard = cardLayout().apply { setPadding(dp(18), dp(17), dp(18), dp(17)) }
@@ -176,10 +189,10 @@ class MainActivity : Activity() {
             setText(upstreamText)
             setSingleLine(true)
             textSize = 13f
-            setTextColor(if (darkMode) Color.WHITE else Color.rgb(42, 25, 34))
+            setTextColor(if (darkMode) Color.WHITE else Color.rgb(22, 22, 22))
             setHintTextColor(muted)
             setPadding(dp(12), dp(8), dp(12), dp(8))
-            background = rounded(if (darkMode) Color.rgb(43, 25, 36) else Color.rgb(242, 232, 238), 12)
+            background = rounded(if (darkMode) Color.rgb(33, 33, 38) else Color.rgb(243, 243, 245), 12)
             inputType = android.text.InputType.TYPE_CLASS_TEXT
             textDirection = View.TEXT_DIRECTION_LTR   // an address such as 127.0.0.1:10808 is always left to right
         }
@@ -242,7 +255,7 @@ class MainActivity : Activity() {
     private fun infoTile(title: String, value: String, weight: Float): View = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
         setPadding(dp(12), dp(10), dp(12), dp(10))
-        background = rounded(if (darkMode) Color.rgb(43, 25, 36) else Color.rgb(242, 232, 238), 14)
+        background = rounded(if (darkMode) Color.rgb(33, 33, 38) else Color.rgb(243, 243, 245), 14)
         addView(text(title, 10f, muted))
         addView(text(value, 14f, Color.WHITE, true))
         layoutParams = LinearLayout.LayoutParams(0, -2, weight)
@@ -256,21 +269,21 @@ class MainActivity : Activity() {
     private fun text(value: String, size: Float, color: Int, bold: Boolean = false) = TextView(this).apply {
         text = value
         textSize = size
-        setTextColor(if (color == Color.WHITE && !darkMode) Color.rgb(42, 25, 34) else color)
+        setTextColor(if (color == Color.WHITE && !darkMode) Color.rgb(22, 22, 22) else color)
         if (bold) setTypeface(typeface, Typeface.BOLD)
         setPadding(0, dp(2), 0, dp(2))
         textDirection = View.TEXT_DIRECTION_FIRST_STRONG
     }
 
     private fun primaryButton(label: String, action: () -> Unit) = Button(this).apply {
-        text = label; isAllCaps = false; textSize = 13f; setTextColor(if (darkMode) Color.WHITE else Color.rgb(42, 25, 34))
+        text = label; isAllCaps = false; textSize = 13f; setTextColor(Color.WHITE)
         background = rounded(accent, 13); setOnClickListener { action() }
         minHeight = dp(48); stateListAnimator = null
     }
 
     private fun secondaryButton(label: String, action: () -> Unit) = Button(this).apply {
-        text = label; isAllCaps = false; textSize = 12f; setTextColor(if (darkMode) Color.WHITE else Color.rgb(42, 25, 34))
-        background = rounded(if (darkMode) Color.rgb(61, 36, 52) else Color.rgb(238, 224, 232), 13); setOnClickListener { action() }
+        text = label; isAllCaps = false; textSize = 12f; setTextColor(if (darkMode) Color.WHITE else Color.rgb(22, 22, 22))
+        background = rounded(if (darkMode) Color.rgb(40, 40, 46) else Color.rgb(236, 236, 239), 13); setOnClickListener { action() }
         minHeight = dp(46); stateListAnimator = null
     }
 
@@ -294,7 +307,8 @@ class MainActivity : Activity() {
 
     private fun refreshNetworkInfo() {
         val host = lanIpv4()
-        addressView.text = host ?: Lang.t("شبکه‌ای پیدا نشد؛ گوشی را به وای‌فای وصل کنید یا هات‌اسپات را روشن کنید.", "No network found. Connect the phone to Wi-Fi or turn on the hotspot.")
+        lastHost = host
+        addressView.text = host ?: Lang.t("شبکه‌ای پیدا نشد؛ گوشی الان فقط روی اینترنت موبایل است.", "No network found: the phone is on mobile data only.")
         if (!fullTunnelRequested && !proxyStarted) status = if (host == null) Status.NO_NETWORK else Status.READY
         renderStatus()
         refreshQr()
@@ -303,6 +317,7 @@ class MainActivity : Activity() {
     /** Writes the status card in the current language. Called again after a language or theme change. */
     private fun renderStatus() {
         if (!::statusTitle.isInitialized) return
+        networkHelp.visibility = if (status == Status.NO_NETWORK) View.VISIBLE else View.GONE
         when (status) {
             Status.READY -> {
                 statusTitle.text = Lang.t("آماده اتصال", "Ready to connect")
@@ -310,7 +325,8 @@ class MainActivity : Activity() {
             }
             Status.NO_NETWORK -> {
                 statusTitle.text = Lang.t("منتظر شبکه", "Waiting for a network")
-                statusDetail.text = Lang.t("گوشی را به همان وای‌فایِ ویندوز وصل کنید، یا هات‌اسپات را روشن و ویندوز را به آن وصل کنید.", "Connect the phone to the same Wi-Fi as the PC, or turn on the hotspot and connect the PC to it.")
+                statusDetail.text = Lang.t("گوشی و ویندوز باید روی یک شبکه باشند، وگرنه ویندوز گوشی را پیدا نمی‌کند. یکی از این دو را انجام دهید: گوشی را به همان وای‌فایِ ویندوز وصل کنید، یا هات‌اسپات گوشی را روشن کنید و ویندوز را به آن وصل کنید. اینترنت موبایل و VPN گوشی در هر دو حالت کار می‌کنند. QR خودکار ظاهر می‌شود.",
+                    "The phone and the PC must be on one network, or the PC cannot find the phone. Do one of these: connect the phone to the same Wi-Fi as the PC, or turn on the phone's hotspot and connect the PC to it. Mobile data and the phone's VPN work in both cases. The QR appears by itself.")
             }
             Status.PROXY_RUNNING -> {
                 statusTitle.text = Lang.t("پروکسی در حال اجرا", "Proxy is running")
@@ -458,5 +474,31 @@ class MainActivity : Activity() {
         else -> 3
     }
 
-    override fun onResume() { super.onResume(); if (::addressView.isInitialized) refreshNetworkInfo() }
+    /** Opens the hotspot or Wi-Fi settings; phone makers name the hotspot screen differently, so there are fallbacks. */
+    private fun openNetworkSettings(hotspot: Boolean) {
+        val attempts = if (hotspot) listOf(
+            Intent().setClassName("com.android.settings", "com.android.settings.TetherSettings"),
+            Intent(Settings.ACTION_WIRELESS_SETTINGS)
+        ) else listOf(Intent(Settings.ACTION_WIFI_SETTINGS))
+        for (intent in attempts) {
+            try { startActivity(intent); return } catch (ignored: Exception) { /* try the next screen */ }
+        }
+        Toast.makeText(this, Lang.t("تنظیمات باز نشد؛ از تنظیمات گوشی خودتان اقدام کنید.", "Could not open the settings. Open them from the phone's own settings."), Toast.LENGTH_LONG).show()
+    }
+
+    /** While the screen is open and nothing is running, look for a network every 3 seconds, so the QR appears as soon as the hotspot or Wi-Fi is on. */
+    private val poll = object : Runnable {
+        override fun run() {
+            if (::addressView.isInitialized && !proxyStarted && !fullTunnelRequested && lanIpv4() != lastHost) refreshNetworkInfo()
+            handler.postDelayed(this, 3000)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::addressView.isInitialized) refreshNetworkInfo()
+        handler.removeCallbacks(poll); handler.postDelayed(poll, 3000)
+    }
+
+    override fun onPause() { handler.removeCallbacks(poll); super.onPause() }
 }

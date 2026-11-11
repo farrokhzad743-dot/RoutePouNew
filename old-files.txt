@@ -17,7 +17,12 @@ icon-512.png
 icon-maskable-512.png
 btn-web.png
 
-# the old website fonts (the site now uses Vazirmatn)
+# the old website fonts and pictures (the site now uses a small Vazirmatn subset and WebP pictures)
+Vazirmatn-Regular.woff2
+Vazirmatn-Medium.woff2
+Vazirmatn-Bold.woff2
+app-android.png
+app-windows.png
 Estedad-Regular.woff2
 Estedad-Medium.woff2
 Estedad-Bold.woff2
@@ -26,6 +31,9 @@ Inter-Regular.woff
 Inter-SemiBold.woff
 Inter-Bold.woff
 Inter-ExtraBold.woff
+
+# the old Persian guide (README.md is Persian now, README.en.md is the English guide)
+README.fa.md
 
 # a placeholder that is not a valid Android resource
 res/drawable-nodpi/none

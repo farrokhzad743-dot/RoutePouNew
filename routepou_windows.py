@@ -249,7 +249,7 @@ def connect():
             root.after(0, lambda: set_status(("متصل به گوشی · پراکسی ویندوز فعال است", "Connected to the phone · the Windows proxy is on"), "connected"))
         except Exception as exc:
             stop_event.set()
-            root.after(0, lambda err=describe_connect_error(exc): (set_status(("اتصال برقرار نشد", "Could not connect"), "error"), messagebox.showerror("RoutePou", err)))
+            root.after(0, lambda err=describe_connect_error(exc, phone): (set_status(("اتصال برقرار نشد", "Could not connect"), "error"), messagebox.showerror("RoutePou", err)))
         finally:
             connect.busy = False
             root.after(0, lambda: connect_button.configure(state="normal"))
@@ -292,20 +292,20 @@ root = tk.Tk()
 root.title(t("RoutePou | اتصال گوشی به ویندوز", "RoutePou | Phone to Windows"))
 root.geometry("780x820")
 root.minsize(700, 740)
-root.configure(bg="#0d0a0f")
+root.configure(bg="#0f0f11")
 root.resizable(True, True)
 
 DARK_COLORS = {
-    "bg": "#0d0a0f", "panel": "#1f141c", "panel2": "#2b1924",
-    "text": "#fff7fb", "muted": "#bea6b4", "accent": "#961941",
-    "accent_hover": "#b52b58", "green": "#36c995", "yellow": "#e7b75b",
-    "red": "#ff6b7d", "border": "#513044", "input": "#170e14"
+    "bg": "#0f0f11", "panel": "#17171a", "panel2": "#212126",
+    "text": "#f5f5f7", "muted": "#a3a3ab", "accent": "#d01f2f",
+    "accent_hover": "#e0394a", "green": "#36c995", "yellow": "#e7b75b",
+    "red": "#ff6b7d", "border": "#34343b", "input": "#121215"
 }
 LIGHT_COLORS = {
-    "bg": "#f8f4f7", "panel": "#ffffff", "panel2": "#f0e5eb",
-    "text": "#291923", "muted": "#705363", "accent": "#851238",
-    "accent_hover": "#a51e4d", "green": "#167a56", "yellow": "#916000",
-    "red": "#b5223e", "border": "#ddc7d2", "input": "#fffafd"
+    "bg": "#fafafb", "panel": "#ffffff", "panel2": "#f3f3f5",
+    "text": "#161616", "muted": "#62626a", "accent": "#d01f2f",
+    "accent_hover": "#b8192a", "green": "#167a56", "yellow": "#916000",
+    "red": "#b5223e", "border": "#dcdce1", "input": "#fcfcfd"
 }
 DARK_MODE = True
 COLORS = dict(DARK_COLORS)
@@ -383,7 +383,6 @@ language_button = tk.Button(header, text="English" if i18n.LANG == "fa" else "ف
                             bg=COLORS["panel2"], fg=COLORS["text"], activebackground=COLORS["border"],
                             relief="flat", padx=12, pady=8, cursor="hand2")
 language_button.pack(side="right", anchor="n", padx=(8, 0))
-tk.Label(header, text="BETA " + APP_VERSION.split("-")[0], font=(FONT, 9, "bold"), fg=COLORS["accent"], bg=COLORS["panel2"], padx=12, pady=7).pack(side="right", anchor="n")
 
 status_card = tk.Frame(outer, bg=COLORS["panel"], highlightthickness=1, highlightbackground=COLORS["border"])
 status_card.pack(fill="x", pady=(0, 16))
@@ -597,29 +596,30 @@ for title, value in ((("پراکسی سیستم", "System proxy"), "HTTP / HTTPS
     tr(tk.Label(cell, font=(FONT, 9), fg=COLORS["muted"], bg=COLORS["panel2"]), *title).pack(anchor="w", padx=12, pady=(9, 2))
     tk.Label(cell, text=value, font=(FONT, 10, "bold"), fg=COLORS["text"], bg=COLORS["panel2"]).pack(anchor="w", padx=12, pady=(0, 10))
 
-buttons = tk.Frame(outer, bg=COLORS["bg"]); buttons.pack(fill="x", pady=(0, 14))
+buttons = tk.Frame(outer, bg=COLORS["bg"]); buttons.pack(fill="x", pady=(0, 10))
 connect_button = tr(tk.Button(buttons, command=connect, bg=COLORS["accent"], fg="white",
                            activebackground=COLORS["accent_hover"], activeforeground="white", relief="flat",
                            font=(FONT, 11, "bold"), padx=22, pady=12, cursor="hand2"), "اتصال پراکسی", "Connect the proxy")
 connect_button.pack(side="left", fill="x", expand=True, padx=(0, 8))
-tr(tk.Button(buttons, command=connect_full_tunnel, bg="#365fd8", fg="white",
-          activebackground="#4772ec", activeforeground="white", relief="flat",
-          font=(FONT, 10, "bold"), padx=16, pady=12, cursor="hand2"), "اتصال تونل کامل WireGuard", "Connect the WireGuard full tunnel").pack(side="left", fill="x", expand=True, padx=(0, 8))
-tr(tk.Button(buttons, command=disconnect_full_tunnel, bg=COLORS["panel2"], fg=COLORS["text"],
-          activebackground=COLORS["border"], activeforeground=COLORS["text"], relief="flat",
-          font=(FONT, 9, "bold"), padx=12, pady=12, cursor="hand2"), "قطع تونل کامل", "Disconnect the full tunnel").pack(side="left", fill="x", expand=True, padx=(0, 8))
 tr(tk.Button(buttons, command=disconnect, bg=COLORS["panel2"], fg=COLORS["text"],
           activebackground=COLORS["border"], activeforeground=COLORS["text"], relief="flat",
           font=(FONT, 10, "bold"), padx=18, pady=12, cursor="hand2"), "قطع پراکسی و بازیابی تنظیمات", "Disconnect the proxy and restore settings").pack(side="left", fill="x", expand=True)
+tunnel_buttons = tk.Frame(outer, bg=COLORS["bg"]); tunnel_buttons.pack(fill="x", pady=(0, 14))
+tr(tk.Button(tunnel_buttons, command=connect_full_tunnel, bg=COLORS["text"], fg=COLORS["bg"],
+          activebackground=COLORS["muted"], activeforeground=COLORS["bg"], relief="flat",
+          font=(FONT, 10, "bold"), padx=16, pady=12, cursor="hand2"), "اتصال تونل کامل WireGuard", "Connect the WireGuard full tunnel").pack(side="left", fill="x", expand=True, padx=(0, 8))
+tr(tk.Button(tunnel_buttons, command=disconnect_full_tunnel, bg=COLORS["panel2"], fg=COLORS["text"],
+          activebackground=COLORS["border"], activeforeground=COLORS["text"], relief="flat",
+          font=(FONT, 10, "bold"), padx=12, pady=12, cursor="hand2"), "قطع تونل کامل", "Disconnect the full tunnel").pack(side="left", fill="x", expand=True)
 
-notice = tk.Frame(outer, bg="#241d2a", highlightthickness=1, highlightbackground="#5b3448")
+notice = tk.Frame(outer, bg=COLORS["panel2"], highlightthickness=1, highlightbackground=COLORS["border"])
 notice.pack(fill="x")
-tr(tk.Label(notice, font=(FONT, 9, "bold"), fg="#ffb4c4", bg="#241d2a"), "محدودیت نسخه آلفا", "Limits of this early version").pack(anchor="w", padx=14, pady=(9, 2))
-tr(tk.Label(notice, font=(FONT, 9), fg="#d8c4ce", bg="#241d2a", wraplength=680, justify="left"),
+tr(tk.Label(notice, font=(FONT, 9, "bold"), fg=COLORS["red"], bg=COLORS["panel2"]), "محدودیت‌های این نسخه", "Limits of this version").pack(anchor="w", padx=14, pady=(9, 2))
+tr(tk.Label(notice, font=(FONT, 9), fg=COLORS["muted"], bg=COLORS["panel2"], wraplength=680, justify="left"),
    "اتصال QR در این نسخه برای جفت‌سازی سریع است. حالت پراکسی و تونل WireGuard مسیرهای جداگانه‌اند؛ قبل از استفاده روزمره، انتقال واقعی ترافیک را آزمایش کنید.",
    "The QR connection in this version is for quick pairing. The proxy mode and the WireGuard tunnel are separate paths; test real traffic before everyday use.").pack(anchor="w", padx=14, pady=(0, 10))
 
-footer = tk.Label(outer, text=f"POU NETWORK TOOLS  •  ROUTEPOU {APP_VERSION.upper()}", font=(FONT, 8, "bold"), fg="#647492", bg=COLORS["bg"])
+footer = tk.Label(outer, text=f"POU NETWORK TOOLS  •  ROUTEPOU {APP_VERSION.upper()}", font=(FONT, 8, "bold"), fg=COLORS["muted"], bg=COLORS["bg"])
 footer.pack(anchor="center", pady=(12, 0))
 def _restore_proxy_on_exit():
     """Never leave the Windows system proxy pointing at a bridge that no longer exists."""

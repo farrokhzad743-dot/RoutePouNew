@@ -3,8 +3,26 @@
 ## 0.27.0-beta — Clean rebuild
 The project was rebuilt as a flat repository with a single Go module and three independent workflows.
 
+### Changed: a shorter, faster website
+- The home page shows only the essentials: headline, both downloads and four buttons (How it works, Inside the app, Security, License). Each button opens its explanation in a layer (a dialog; a bottom sheet on a phone). Without JavaScript the sections are shown on the page.
+- Dark and light theme (follows the system, remembered, button in the header) and Persian/English (remembered). The app pictures switch to dark versions in the dark theme.
+- Fast: the first view loads about 80 KB (HTML, CSS, JavaScript, two reduced Vazirmatn font files, a 2 KB logo). The app pictures are WebP (35 to 40 KB each), load only when their layer opens, and only the picture for the current theme loads.
+
 ### Added: language button in both apps
 - The Android app and the Windows app each have a language button (فارسی / English). Persian is the default; the choice is kept for the next start. Android switches the whole screen between right-to-left and left-to-right and keeps the typed text and the running status; Windows redraws every text (`i18n.py`, saved in `%APPDATA%\\RoutePou\\settings.json`). Error messages from the helpers follow the language too.
+
+### Fixed: the phone shows what to do when there is no shared network
+- With only mobile data (no Wi-Fi, no hotspot) the Android app now says so plainly, shows **Turn on hotspot** and **Connect to Wi-Fi** buttons, and checks for a network every 3 seconds, so the QR appears as soon as one is available. The Windows app compares its own address with the phone's when a connection times out and tells you whether the two are on different networks.
+- The primary button label is white on the red in both themes (it was dark on the light theme).
+
+### Changed: the two apps look like the pictures on the website
+- Both apps use the same palette as the site (red `#D01F2F` on neutral greys). The Windows buttons are in two rows (four in one row were wider than the window), the notice and footer follow the theme, and the BETA badge is gone from the header. The site pictures were redrawn from the real layout of both apps.
+
+### Changed: tests.yml shows what failed
+- A failing run lists the failed test names and their first lines on the run's Summary page.
+
+### Changed: README
+- `README.md` is in Persian now, with the earlier hero and button images, and an **English guide** button that opens `README.en.md`. The English page has a Persian-guide button back. `README.fa.md` is gone (listed in `old-files.txt`).
 
 ### Added: Remove old files
 - `old-files.txt` lists the files that older versions left in the repository. The CI jobs ignore them in their own checkout, and the new manual workflow **Remove old files** (`cleanup.yml`) deletes them from the repository.
@@ -42,7 +60,7 @@ The project was rebuilt as a flat repository with a single Go module and three i
 
 ### Added
 - Download website for Windows and Android (`index.html`, `site.css`, `site.js`): one plain white and red page in Persian and English with both downloads together, simple pictures of the app screens, and the security and license information written on the page. One font (Vazirmatn). Published with GitHub Pages at routepou.pouone.ir. It replaces the earlier installable web app.
-- `README.fa.md` (Persian guide), `PUBLISHING.md` (maintainer steps), `set-repo.py` (rewrite links for another repository).
+- `README.en.md` (English guide; `README.md` is the Persian page), `PUBLISHING.md` (maintainer steps), `set-repo.py` (rewrite links for another repository).
 - Release files have fixed names (`RoutePou-android.apk`, `RoutePou-windows-x64.exe`) and the release is marked latest, so the README download buttons always work.
 
 ### Security

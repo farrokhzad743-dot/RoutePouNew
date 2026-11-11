@@ -28,7 +28,8 @@ def test_version_is_consistent():
     assert f"versionCode = {minor}" in gradle
     assert f'APP_VERSION = "{VERSION}"' in (ROOT / "routepou_windows.py").read_text(encoding="utf-8")
     assert f"## {VERSION}" in (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-    assert f"`{VERSION}`" in (ROOT / "README.md").read_text(encoding="utf-8")
+    for name in ("README.md", "README.en.md"):
+        assert f"`{VERSION}`" in (ROOT / name).read_text(encoding="utf-8")
 
 
 def test_workflows_are_valid_and_reference_existing_files():
@@ -107,7 +108,7 @@ def test_go_layout_is_one_module():
 def test_repo_has_no_stray_files_and_stays_flat():
     allowed_dirs = {".github", "res", "winclient", "build", "__pycache__", ".pytest_cache", ".git"}
     assert {p.name for p in ROOT.iterdir() if p.is_dir()} <= allowed_dirs
-    for name in ("LICENSE", "README.md", "README.fa.md", "PUBLISHING.md", "SECURITY.md", "TESTING.md",
+    for name in ("LICENSE", "README.md", "README.en.md", "PUBLISHING.md", "SECURITY.md", "TESTING.md",
                  "THIRD_PARTY_NOTICES.md", "FONT_LICENSES.txt", "logo.png", ".gitignore", "index.html", "site.css",
                  "site.js", "CNAME", ".nojekyll", "hero.png", "og-image.png", "set-repo.py"):
         assert (ROOT / name).is_file(), name
@@ -134,7 +135,7 @@ def test_old_files_are_listed_once_and_are_not_part_of_the_project():
     names = old_files()
     assert len(names) == len(set(names)) >= 20
     publishing = (ROOT / "PUBLISHING.md").read_text(encoding="utf-8")
-    for name in ("test_pwa.py", "app.js", "btn-web.png", "Estedad-Regular.woff2", "Inter-Regular.woff",
+    for name in ("test_pwa.py", "app.js", "btn-web.png", "README.fa.md", "Estedad-Regular.woff2", "Inter-Regular.woff",
                  "res/drawable-nodpi/none", ".github/workflows/build.yml", ".github/workflows/build.xml"):
         assert name in names, name
     for name in names:

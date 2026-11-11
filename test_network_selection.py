@@ -30,7 +30,7 @@ def test_android_skips_vpn_cellular_and_point_to_point_interfaces():
 
 def test_every_user_facing_hint_works_without_a_hotspot():
     assert "هات‌اسپات لازم نیست" in ACTIVITY
-    assert "وای‌فای" in function_body("refreshNetworkInfo")
+    assert "وای‌فای" in function_body("renderStatus")
     windows = (ROOT / "routepou_windows.py").read_text(encoding="utf-8")
     assert 'tk.StringVar(value="192.168.43.1")' not in windows
     assert "describe_connect_error" in windows
@@ -50,3 +50,18 @@ def test_connect_errors_explain_what_to_check():
     assert "AP isolation" in describe_connect_error(refused_win)
     assert "کلید جفت‌سازی جدید" in describe_connect_error(ssl.SSLError("certificate verify failed"))
     assert "QR تازه" in describe_connect_error(ValueError("something else"))
+
+
+def test_timeout_advice_compares_pc_and_phone_networks(monkeypatch):
+    import pairing
+    timeout = socket.timeout("timed out")
+    monkeypatch.setattr(pairing, "local_ip_towards", lambda host: "192.168.1.7")
+    other = describe_connect_error(timeout, "192.168.43.1")
+    assert "192.168.1.7" in other and "192.168.43.1" in other and "در یک شبکه نیستند" in other
+    same = describe_connect_error(timeout, "192.168.1.23")
+    assert "AP isolation" in same and "هر دو در یک شبکه‌اند" in same
+    monkeypatch.setattr(pairing, "local_ip_towards", lambda host: None)
+    assert "به هیچ شبکه‌ای وصل نیست" in describe_connect_error(timeout, "192.168.1.23")
+    # a public or unknown address gets the general advice only
+    assert "هیچ شبکه" not in describe_connect_error(timeout, "8.8.8.8")
+    assert "هیچ شبکه" not in describe_connect_error(timeout)

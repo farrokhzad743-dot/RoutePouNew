@@ -1,0 +1,4 @@
+/* Only loaded when JavaScript is off: the sections are shown on the page instead of opening in a layer. */
+.topics, .x { display: none; }
+dialog.layer { display: block; position: static; width: auto; max-width: 720px; max-height: none; margin: 24px auto; border: 1px solid var(--line); }
+.layer-body { max-height: none; overflow: visible; }

@@ -19,39 +19,43 @@
 <link rel="canonical" href="https://routepou.pouone.ir/">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preload" href="Vazirmatn-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="Vazirmatn-Regular.woff" as="font" type="font/woff" crossorigin>
+<link rel="preload" href="Vazirmatn-Bold.woff" as="font" type="font/woff" crossorigin>
+<script src="init.js"></script>
 <link rel="stylesheet" href="site.css">
+<noscript><link rel="stylesheet" href="nojs.css"></noscript>
 </head>
 <body>
 
-<header class="top">
+<header>
   <div class="wrap bar">
-    <a class="brand" href="#top" aria-label="RoutePou">
-      <img src="logo.png" alt="" width="34" height="34">
+    <a class="brand" href="./" aria-label="RoutePou">
+      <img src="logo-small.webp" alt="" width="36" height="36">
       <span>RoutePou</span>
     </a>
-    <nav class="nav" aria-label="Sections">
-      <a href="#how"><span lang="fa">نحوه کار</span><span lang="en">How it works</span></a>
-      <a href="#app"><span lang="fa">برنامه</span><span lang="en">The app</span></a>
-      <a href="#security"><span lang="fa">امنیت</span><span lang="en">Security</span></a>
-      <a href="#license"><span lang="fa">مجوز</span><span lang="en">License</span></a>
-    </nav>
-    <button class="lang" id="langBtn" type="button"><span lang="fa">English</span><span lang="en">فارسی</span></button>
+    <div class="tools">
+      <button class="tool" id="themeBtn" type="button">
+        <svg class="moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+        <svg class="sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <span class="sr"><span lang="fa">تغییر حالت تاریک و روشن</span><span lang="en">Switch between dark and light</span></span>
+      </button>
+      <button class="tool" id="langBtn" type="button"><span lang="fa">English</span><span lang="en">فارسی</span></button>
+    </div>
   </div>
 </header>
 
-<main id="top">
+<main>
 
   <!-- Download: both platforms in one place -->
   <section class="hero wrap" id="download">
-    <h1 class="reveal">
+    <h1>
       <span lang="fa">اینترنت گوشی شما،<br>روی کامپیوتر</span>
       <span lang="en">Your phone's internet,<br>on your computer</span>
     </h1>
-    <p class="lead reveal" lang="fa">RoutePou اینترنت و VPN گوشی اندروید را با یک اسکن QR و روی همان شبکه، به ویندوز می‌رساند.</p>
-    <p class="lead reveal" lang="en">RoutePou shares an Android phone's internet and VPN with a Windows PC. One QR scan, on the same network.</p>
+    <p class="lead" lang="fa">RoutePou اینترنت و VPN گوشی اندروید را با یک اسکن QR و روی همان شبکه، به ویندوز می‌رساند.</p>
+    <p class="lead" lang="en">RoutePou shares an Android phone's internet and VPN with a Windows PC. One QR scan, on the same network.</p>
 
-    <div class="dl reveal">
+    <div class="dl">
       <a class="btn btn-red" href="https://github.com/farrokhzad743-dot/RoutePouNew/releases/latest/download/RoutePou-windows-x64.exe">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10.5l5 5 5-5M5 20h14"/></svg>
         <span lang="fa">دانلود برای ویندوز</span><span lang="en">Download for Windows</span>
@@ -61,136 +65,161 @@
         <span lang="fa">دانلود برای اندروید</span><span lang="en">Download for Android</span>
       </a>
     </div>
-    <p class="meta reveal">
+    <p class="meta">
       <span lang="fa">ویندوز ۱۰ و ۱۱ (۶۴ بیتی) · اندروید ۸ و بالاتر</span>
       <span lang="en">Windows 10 and 11 (64-bit) · Android 8 or later</span>
     </p>
   </section>
 
-  <section class="sec" id="how">
-    <div class="wrap split">
-      <div class="head reveal">
-        <h2><span lang="fa">نحوه کار</span><span lang="en">How it works</span></h2>
-        <p lang="fa">سه قدم، بدون وارد کردن آدرس یا رمز.</p>
-        <p lang="en">Three steps. No addresses or passwords to type.</p>
-      </div>
-      <ol class="steps">
-        <li class="reveal">
-          <span class="n" aria-hidden="true"></span>
-          <div>
-            <h3 lang="fa">گوشی و ویندوز را به یک شبکه وصل کنید</h3>
-            <h3 lang="en">Put the phone and the PC on one network</h3>
-            <p lang="fa">هر دو را به یک وای‌فای وصل کنید. اگر وای‌فای مشترک ندارید، هات‌اسپات گوشی را روشن کنید. VPN گوشی را هم، در صورت نیاز، روشن کنید.</p>
-            <p lang="en">Use the same Wi-Fi, or turn on the phone's hotspot and join it from the PC. Switch on the phone's VPN if you use one.</p>
-          </div>
-        </li>
-        <li class="reveal">
-          <span class="n" aria-hidden="true"></span>
-          <div>
-            <h3 lang="fa">در اندروید، اشتراک‌گذاری را شروع کنید</h3>
-            <h3 lang="en">Start sharing on Android</h3>
-            <p lang="fa">برنامه یک کد QR نشان می‌دهد.</p>
-            <p lang="en">The app shows a QR code.</p>
-          </div>
-        </li>
-        <li class="reveal">
-          <span class="n" aria-hidden="true"></span>
-          <div>
-            <h3 lang="fa">QR را در ویندوز اسکن کنید</h3>
-            <h3 lang="en">Scan the QR code on Windows</h3>
-            <p lang="fa">ویندوز وصل می‌شود و اینترنت از مسیر گوشی می‌رود.</p>
-            <p lang="en">The PC connects and its traffic goes out through the phone.</p>
-          </div>
-        </li>
-      </ol>
-    </div>
-  </section>
-
-  <section class="sec band" id="app">
-    <div class="wrap">
-      <div class="head reveal">
-        <h2><span lang="fa">داخل برنامه</span><span lang="en">Inside the app</span></h2>
-        <p lang="fa">یک صفحه در اندروید و یک صفحه در ویندوز؛ همین.</p>
-        <p lang="en">One screen on Android, one on Windows. That is all.</p>
-      </div>
-      <div class="shots">
-        <figure class="shot phone reveal">
-          <img src="app-android.png" alt="" width="344" height="760">
-          <figcaption><span lang="fa">اندروید: شروع اشتراک‌گذاری و نمایش QR</span><span lang="en">Android: start sharing, show the QR</span></figcaption>
-        </figure>
-        <figure class="shot desk reveal">
-          <img src="app-windows.png" alt="" width="760" height="520">
-          <figcaption><span lang="fa">ویندوز: اسکن QR و اتصال</span><span lang="en">Windows: scan the QR, connect</span></figcaption>
-        </figure>
-      </div>
-    </div>
-  </section>
-
-  <section class="sec" id="security">
-    <div class="wrap split">
-      <div class="head reveal">
-        <h2><span lang="fa">امنیت</span><span lang="en">Security</span></h2>
-        <p lang="fa">اتصال فقط بین گوشی و کامپیوتر خود شماست.</p>
-        <p lang="en">The connection runs only between your phone and your computer.</p>
-      </div>
-      <div class="items">
-        <div class="item reveal">
-          <h3 lang="fa">رمزگذاری TLS</h3><h3 lang="en">TLS encryption</h3>
-          <p lang="fa">ارتباط پراکسی با TLS 1.2 یا 1.3 انجام می‌شود. هر نصب اندروید کلید و گواهی مخصوص خودش را دارد و ویندوز فقط همان گواهی را می‌پذیرد.</p>
-          <p lang="en">Proxy traffic uses TLS 1.2 or 1.3. Every Android install has its own key and certificate, and Windows accepts only that certificate.</p>
-        </div>
-        <div class="item reveal">
-          <h3 lang="fa">جفت‌سازی با QR</h3><h3 lang="en">Pairing by QR</h3>
-          <p lang="fa">QR شامل کلید جفت‌سازی است. هر کسی که آن را ببیند می‌تواند از اتصال گوشی شما استفاده کند، پس آن را محرمانه نگه دارید. هر زمان بخواهید می‌توانید کلید تازه بسازید.</p>
-          <p lang="en">The QR code carries the pairing key. Anyone who sees it can use your phone's connection, so keep it private. You can create a new key at any time.</p>
-        </div>
-        <div class="item reveal">
-          <h3 lang="fa">فقط شبکه‌ی مورد اعتماد</h3><h3 lang="en">Trusted networks only</h3>
-          <p lang="fa">فقط روی وای‌فای یا هات‌اسپاتی استفاده کنید که به آن اعتماد دارید. دستگاه‌های دیگر شبکه بدون کلید جفت‌سازی نمی‌توانند از آن استفاده کنند.</p>
-          <p lang="en">Use RoutePou only on a Wi-Fi network or hotspot you trust. Other devices on it cannot use the connection without the pairing key.</p>
-        </div>
-        <div class="item reveal">
-          <h3 lang="fa">تونل کامل WireGuard</h3><h3 lang="en">WireGuard full tunnel</h3>
-          <p lang="fa">در این حالت کلیدها فقط در حافظه می‌مانند و هرگز روی دیسک، در خط فرمان یا در گزارش‌ها نوشته نمی‌شوند.</p>
-          <p lang="en">In this mode the keys stay in memory. They are never written to disk, to a command line or to a log.</p>
-        </div>
-      </div>
-    </div>
-    <div class="wrap">
-      <p class="fine reveal" lang="fa">RoutePou هنوز ممیزی امنیتی مستقل نداشته است. حساب کاربری، تبلیغ و ردیاب ندارد.</p>
-      <p class="fine reveal" lang="en">RoutePou has not had an independent security audit. It has no accounts, no ads and no trackers.</p>
-    </div>
-  </section>
-
-  <section class="sec" id="license">
-    <div class="wrap split">
-      <div class="head reveal">
-        <h2><span lang="fa">مجوز</span><span lang="en">License</span></h2>
-        <p lang="fa">نرم‌افزار آزاد، با مجوز GNU GPL نسخه ۳.</p>
-        <p lang="en">Free software, under the GNU GPL version 3.</p>
-      </div>
-      <div class="lic reveal">
-        <p lang="fa">می‌توانید RoutePou را آزادانه استفاده، بررسی، تغییر و منتشر کنید. بخشی از موتور اتصال بر پایه‌ی یک پروژه‌ی متن‌باز با مجوز GPL-3.0 ساخته شده است، برای همین کل برنامه با همین مجوز منتشر می‌شود. کد منبع کامل هر نسخه همراه همان نسخه در دسترس است.</p>
-        <p lang="en">You may use, study, change and share RoutePou freely. Part of the connection engine is built on an open-source project under GPL-3.0, so the whole app is released under the same license. The complete source code of every release is available with that release.</p>
-        <h3 lang="fa">اجزای متن‌باز</h3><h3 lang="en">Open-source components</h3>
-        <ul class="parts" dir="ltr">
-          <li><span>WireGuard (wireguard-go, wireguard-windows)</span><b>MIT</b></li>
-          <li><span>gVisor netstack</span><b>Apache-2.0</b></li>
-          <li><span>Go libraries (golang.org/x)</span><b>BSD-3-Clause</b></li>
-          <li><span>Bouncy Castle</span><b>MIT</b></li>
-          <li><span>ZXing</span><b>Apache-2.0</b></li>
-          <li><span>zxing-cpp, OpenCV</span><b>Apache-2.0</b></li>
-          <li><span>Pillow</span><b>HPND</b></li>
-          <li><span>Wintun</span><b>Wintun license</b></li>
-          <li><span>Vazirmatn (the font of this page)</span><b>SIL OFL 1.1</b></li>
-        </ul>
-        <p class="fine" lang="fa">WireGuard یک نام تجاری ثبت‌شده‌ی Jason A. Donenfeld است. RoutePou با پروژه‌ی WireGuard وابستگی یا تأییدیه‌ای ندارد.</p>
-        <p class="fine" lang="en">WireGuard is a registered trademark of Jason A. Donenfeld. RoutePou is not affiliated with or endorsed by the WireGuard project.</p>
-      </div>
-    </div>
-  </section>
+  <!-- One button per topic; each opens its own layer below -->
+  <nav class="wrap topics" aria-label="Topics">
+    <button class="topic" type="button" data-open="how">
+      <b><span lang="fa">نحوه کار</span><span lang="en">How it works</span></b>
+      <span class="s"><span lang="fa">سه قدم ساده</span><span lang="en">Three simple steps</span></span>
+      <svg width="20" height="14" viewBox="0 0 20 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 7h17M12 1l6 6-6 6"/></svg>
+    </button>
+    <button class="topic" type="button" data-open="app">
+      <b><span lang="fa">داخل برنامه</span><span lang="en">Inside the app</span></b>
+      <span class="s"><span lang="fa">اندروید و ویندوز</span><span lang="en">Android and Windows</span></span>
+      <svg width="20" height="14" viewBox="0 0 20 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 7h17M12 1l6 6-6 6"/></svg>
+    </button>
+    <button class="topic" type="button" data-open="security">
+      <b><span lang="fa">امنیت</span><span lang="en">Security</span></b>
+      <span class="s"><span lang="fa">رمزگذاری و جفت‌سازی</span><span lang="en">Encryption and pairing</span></span>
+      <svg width="20" height="14" viewBox="0 0 20 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 7h17M12 1l6 6-6 6"/></svg>
+    </button>
+    <button class="topic" type="button" data-open="license">
+      <b><span lang="fa">مجوز</span><span lang="en">License</span></b>
+      <span class="s"><span lang="fa">نرم‌افزار آزاد</span><span lang="en">Free software</span></span>
+      <svg width="20" height="14" viewBox="0 0 20 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 7h17M12 1l6 6-6 6"/></svg>
+    </button>
+  </nav>
 
 </main>
+
+<!-- Layers -->
+<dialog class="layer" id="how" aria-labelledby="how-h">
+  <div class="layer-head">
+    <h2 id="how-h"><span lang="fa">نحوه کار</span><span lang="en">How it works</span></h2>
+    <button class="x" type="button" data-close><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg><span class="sr"><span lang="fa">بستن</span><span lang="en">Close</span></span></button>
+  </div>
+  <div class="layer-body">
+    <p class="lede" lang="fa">سه قدم، بدون وارد کردن آدرس یا رمز.</p>
+    <p class="lede" lang="en">Three steps. No addresses or passwords to type.</p>
+    <ol class="steps">
+      <li>
+        <span class="n" aria-hidden="true"></span>
+        <div>
+          <h3 lang="fa">گوشی و ویندوز را به یک شبکه وصل کنید</h3>
+          <h3 lang="en">Put the phone and the PC on one network</h3>
+          <p lang="fa">هر دو را به یک وای‌فای وصل کنید. اگر وای‌فای مشترک ندارید، هات‌اسپات گوشی را روشن کنید. VPN گوشی را هم، در صورت نیاز، روشن کنید.</p>
+          <p lang="en">Use the same Wi-Fi, or turn on the phone's hotspot and join it from the PC. Switch on the phone's VPN if you use one.</p>
+        </div>
+      </li>
+      <li>
+        <span class="n" aria-hidden="true"></span>
+        <div>
+          <h3 lang="fa">در اندروید، اشتراک‌گذاری را شروع کنید</h3>
+          <h3 lang="en">Start sharing on Android</h3>
+          <p lang="fa">برنامه یک کد QR نشان می‌دهد.</p>
+          <p lang="en">The app shows a QR code.</p>
+        </div>
+      </li>
+      <li>
+        <span class="n" aria-hidden="true"></span>
+        <div>
+          <h3 lang="fa">QR را در ویندوز اسکن کنید</h3>
+          <h3 lang="en">Scan the QR code on Windows</h3>
+          <p lang="fa">ویندوز وصل می‌شود و اینترنت از مسیر گوشی می‌رود.</p>
+          <p lang="en">The PC connects and its traffic goes out through the phone.</p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</dialog>
+
+<dialog class="layer" id="app" aria-labelledby="app-h">
+  <div class="layer-head">
+    <h2 id="app-h"><span lang="fa">داخل برنامه</span><span lang="en">Inside the app</span></h2>
+    <button class="x" type="button" data-close><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg><span class="sr"><span lang="fa">بستن</span><span lang="en">Close</span></span></button>
+  </div>
+  <div class="layer-body">
+    <p class="lede" lang="fa">یک صفحه در اندروید و یک صفحه در ویندوز؛ همین.</p>
+    <p class="lede" lang="en">One screen on Android, one on Windows. That is all.</p>
+    <div class="shots">
+      <figure class="shot phone">
+        <img src="app-android.webp" data-shot="app-android" alt="" width="344" height="760" loading="lazy" decoding="async">
+        <figcaption><span lang="fa">اندروید: شروع اشتراک‌گذاری و نمایش QR</span><span lang="en">Android: start sharing, show the QR</span></figcaption>
+      </figure>
+      <figure class="shot desk">
+        <img src="app-windows.webp" data-shot="app-windows" alt="" width="780" height="734" loading="lazy" decoding="async">
+        <figcaption><span lang="fa">ویندوز: اسکن QR و اتصال</span><span lang="en">Windows: scan the QR, connect</span></figcaption>
+      </figure>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="layer" id="security" aria-labelledby="security-h">
+  <div class="layer-head">
+    <h2 id="security-h"><span lang="fa">امنیت</span><span lang="en">Security</span></h2>
+    <button class="x" type="button" data-close><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg><span class="sr"><span lang="fa">بستن</span><span lang="en">Close</span></span></button>
+  </div>
+  <div class="layer-body">
+    <p class="lede" lang="fa">اتصال فقط بین گوشی و کامپیوتر خود شماست.</p>
+    <p class="lede" lang="en">The connection runs only between your phone and your computer.</p>
+    <div class="items">
+      <div class="item">
+        <h3 lang="fa">رمزگذاری TLS</h3><h3 lang="en">TLS encryption</h3>
+        <p lang="fa">ارتباط پراکسی با TLS 1.2 یا 1.3 انجام می‌شود. هر نصب اندروید کلید و گواهی مخصوص خودش را دارد و ویندوز فقط همان گواهی را می‌پذیرد.</p>
+        <p lang="en">Proxy traffic uses TLS 1.2 or 1.3. Every Android install has its own key and certificate, and Windows accepts only that certificate.</p>
+      </div>
+      <div class="item">
+        <h3 lang="fa">جفت‌سازی با QR</h3><h3 lang="en">Pairing by QR</h3>
+        <p lang="fa">QR شامل کلید جفت‌سازی است. هر کسی که آن را ببیند می‌تواند از اتصال گوشی شما استفاده کند، پس آن را محرمانه نگه دارید. هر زمان بخواهید می‌توانید کلید تازه بسازید.</p>
+        <p lang="en">The QR code carries the pairing key. Anyone who sees it can use your phone's connection, so keep it private. You can create a new key at any time.</p>
+      </div>
+      <div class="item">
+        <h3 lang="fa">فقط شبکه‌ی مورد اعتماد</h3><h3 lang="en">Trusted networks only</h3>
+        <p lang="fa">فقط روی وای‌فای یا هات‌اسپاتی استفاده کنید که به آن اعتماد دارید. دستگاه‌های دیگر شبکه بدون کلید جفت‌سازی نمی‌توانند از آن استفاده کنند.</p>
+        <p lang="en">Use RoutePou only on a Wi-Fi network or hotspot you trust. Other devices on it cannot use the connection without the pairing key.</p>
+      </div>
+      <div class="item">
+        <h3 lang="fa">تونل کامل WireGuard</h3><h3 lang="en">WireGuard full tunnel</h3>
+        <p lang="fa">در این حالت کلیدها فقط در حافظه می‌مانند و هرگز روی دیسک، در خط فرمان یا در گزارش‌ها نوشته نمی‌شوند.</p>
+        <p lang="en">In this mode the keys stay in memory. They are never written to disk, to a command line or to a log.</p>
+      </div>
+    </div>
+    <p class="fine" lang="fa">RoutePou هنوز ممیزی امنیتی مستقل نداشته است. حساب کاربری، تبلیغ و ردیاب ندارد.</p>
+    <p class="fine" lang="en">RoutePou has not had an independent security audit. It has no accounts, no ads and no trackers.</p>
+  </div>
+</dialog>
+
+<dialog class="layer" id="license" aria-labelledby="license-h">
+  <div class="layer-head">
+    <h2 id="license-h"><span lang="fa">مجوز</span><span lang="en">License</span></h2>
+    <button class="x" type="button" data-close><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg><span class="sr"><span lang="fa">بستن</span><span lang="en">Close</span></span></button>
+  </div>
+  <div class="layer-body">
+    <p class="lede" lang="fa">نرم‌افزار آزاد، با مجوز GNU GPL نسخه ۳.</p>
+    <p class="lede" lang="en">Free software, under the GNU GPL version 3.</p>
+    <p lang="fa">می‌توانید RoutePou را آزادانه استفاده، بررسی، تغییر و منتشر کنید. بخشی از موتور اتصال بر پایه‌ی یک پروژه‌ی متن‌باز با مجوز GPL-3.0 ساخته شده است، برای همین کل برنامه با همین مجوز منتشر می‌شود. کد منبع کامل هر نسخه همراه همان نسخه در دسترس است.</p>
+    <p lang="en">You may use, study, change and share RoutePou freely. Part of the connection engine is built on an open-source project under GPL-3.0, so the whole app is released under the same license. The complete source code of every release is available with that release.</p>
+    <h3 lang="fa">اجزای متن‌باز</h3><h3 lang="en">Open-source components</h3>
+    <ul class="parts" dir="ltr">
+      <li><span>WireGuard (wireguard-go, wireguard-windows)</span><b>MIT</b></li>
+      <li><span>gVisor netstack</span><b>Apache-2.0</b></li>
+      <li><span>Go libraries (golang.org/x)</span><b>BSD-3-Clause</b></li>
+      <li><span>Bouncy Castle</span><b>MIT</b></li>
+      <li><span>ZXing</span><b>Apache-2.0</b></li>
+      <li><span>zxing-cpp, OpenCV</span><b>Apache-2.0</b></li>
+      <li><span>Pillow</span><b>HPND</b></li>
+      <li><span>Wintun</span><b>Wintun license</b></li>
+      <li><span>Vazirmatn (the font of this page)</span><b>SIL OFL 1.1</b></li>
+    </ul>
+    <p class="fine" lang="fa">WireGuard یک نام تجاری ثبت‌شده‌ی Jason A. Donenfeld است. RoutePou با پروژه‌ی WireGuard وابستگی یا تأییدیه‌ای ندارد.</p>
+    <p class="fine" lang="en">WireGuard is a registered trademark of Jason A. Donenfeld. RoutePou is not affiliated with or endorsed by the WireGuard project.</p>
+  </div>
+</dialog>
 
 <footer class="foot">
   <div class="wrap bar">
@@ -202,6 +231,6 @@
   </div>
 </footer>
 
-<script src="site.js"></script>
+<script src="site.js" defer></script>
 </body>
 </html>

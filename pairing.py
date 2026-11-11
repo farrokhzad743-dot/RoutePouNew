@@ -32,7 +32,46 @@ def parse_pairing_payload(payload: str):
     return str(address), str(int(port)), token.lower(), clean_fp
 
 
-def describe_connect_error(exc: BaseException) -> str:
+def local_ip_towards(host: str):
+    """The address this PC would use to reach `host` (nothing is sent), or None when the PC has no route to it."""
+    import socket
+    probe = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        probe.connect((host, 9))
+        return probe.getsockname()[0]
+    except OSError:
+        return None
+    finally:
+        probe.close()
+
+
+def _same_network(a: str, b: str) -> bool:
+    """Home networks and phone hotspots are /24 networks, so the first three numbers must match."""
+    return a.split(".")[:3] == b.split(".")[:3]
+
+
+def network_hint(host) -> str:
+    """One extra line for a timeout: compares this PC's address with the phone's. Empty when nothing useful can be said."""
+    import ipaddress
+    try:
+        if not host or not ipaddress.ip_address(host).is_private:
+            return ""
+    except ValueError:
+        return ""
+    mine = local_ip_towards(host)
+    if mine is None:
+        return t("این کامپیوتر الان به هیچ شبکه‌ای وصل نیست؛ آن را به وای‌فای یا هات‌اسپات گوشی وصل کنید.",
+                 "This PC is not connected to any network right now. Connect it to the Wi-Fi or to the phone's hotspot.")
+    if not _same_network(mine, host):
+        return t(f"آدرس این کامپیوتر {mine} و آدرس گوشی {host} است؛ در یک شبکه نیستند. "
+                 "ویندوز را به همان وای‌فایِ گوشی (یا به هات‌اسپات گوشی) وصل کنید.",
+                 f"This PC is {mine} and the phone is {host}: they are not on the same network. "
+                 "Connect the PC to the phone's Wi-Fi (or to the phone's hotspot).")
+    return t(f"هر دو در یک شبکه‌اند ({mine} و {host})، پس مشکل احتمالاً AP isolation روتر یا فایروال ویندوز است.",
+             f"Both are on the same network ({mine} and {host}), so the likely cause is the router's AP isolation or the Windows Firewall.")
+
+
+def describe_connect_error(exc: BaseException, host=None) -> str:
     """Turn a low-level socket error into advice the user can act on (in the app's language, raw reason kept)."""
     import socket
     import ssl
@@ -52,6 +91,9 @@ def describe_connect_error(exc: BaseException) -> str:
                    "2) \"Start sharing\" was tapped in the Android app; "
                    "3) the router's \"client isolation / AP isolation\" is off; "
                    "4) Windows Firewall is not blocking RoutePou.")
+        extra = network_hint(host)
+        if extra:
+            advice = extra + "\n\n" + advice
     else:
         advice = t("اتصال به گوشی برقرار نشد. QR تازه بگیرید و دوباره امتحان کنید.",
                    "Could not connect to the phone. Get a fresh QR and try again.")
