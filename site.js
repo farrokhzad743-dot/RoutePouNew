@@ -65,6 +65,9 @@
     if (!layer || layer.open) { return; }
     if (typeof layer.showModal === "function") { layer.showModal(); } else { layer.setAttribute("open", ""); }
     root.classList.add("lock");
+    /* the cover picture of the video is fetched only now, so the first view stays small */
+    var teaser = layer.querySelector("video[data-poster]");
+    if (teaser && !teaser.getAttribute("poster")) { teaser.setAttribute("poster", teaser.getAttribute("data-poster")); }
     try { history.replaceState(null, "", "#" + id); } catch (e) { /* not important */ }
   }
   function closed() {
@@ -77,7 +80,11 @@
   }
   var layers = document.querySelectorAll("dialog.layer");
   for (var j = 0; j < layers.length; j++) {
-    layers[j].addEventListener("close", closed);
+    layers[j].addEventListener("close", function (event) {
+      var playing = event.currentTarget.querySelector("video");
+      if (playing) { playing.pause(); }
+      closed();
+    });
     /* a click on the dimmed area (the dialog element itself, outside its content) closes the layer */
     layers[j].addEventListener("click", function (event) {
       if (event.target === event.currentTarget) { event.currentTarget.close(); }

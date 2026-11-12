@@ -128,6 +128,10 @@ dialog.layer::backdrop { background: var(--scrim); }
 html[lang="en"] .n::before { content: counter(step, decimal); }
 .steps p { margin-top: 2px; }
 
+.teaser { margin: 4px 0 22px; }
+.teaser video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #fff; border: 1px solid var(--line); border-radius: 14px; }
+.teaser figcaption { margin-top: 10px; text-align: center; font-size: .88rem; color: var(--muted); }
+
 .shots { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: center; gap: 28px; }
 .shot figcaption { margin-top: 12px; text-align: center; font-size: .88rem; color: var(--muted); }
 .shot.phone img { width: 230px; }

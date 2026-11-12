@@ -102,10 +102,11 @@ def test_persian_and_english_copy_are_paired():
     assert 'lang="fa" dir="rtl"' in INDEX  # Persian is the default
 
 
-def test_download_links_point_at_this_repository():
+def test_download_links_point_at_files_next_to_the_page():
+    # the two files are put beside index.html on the web host by hand; the buttons link to them directly
     links = page().links
-    assert f"{RELEASE}/RoutePou-windows-x64.exe" in links
-    assert f"{RELEASE}/RoutePou-android.apk" in links
+    assert "RoutePou-windows-x64.exe" in links
+    assert "RoutePou-android.apk" in links
     for href in links:
         if "github.com" in href:
             assert href.startswith(f"https://github.com/{SLUG}"), href
@@ -238,6 +239,18 @@ def test_app_pictures_follow_the_theme_and_are_not_loaded_up_front():
     assert "<dialog" in INDEX.split("data-shot", 1)[0]
 
 
+def test_teaser_video_is_lazy_and_allowed_by_the_policy():
+    csp = re.search(r'Content-Security-Policy" content="([^"]+)"', INDEX).group(1)
+    assert "media-src 'self'" in csp and "unsafe-inline" not in csp
+    tag = re.search(r"<video[^>]*>", INDEX).group(0)
+    assert 'src="RoutePou-teaser.mp4"' in tag and 'preload="none"' in tag and "autoplay" not in tag and "controls" in tag
+    assert ' poster=' not in tag and 'data-poster="teaser-poster.webp"' in tag, "the cover loads only when the layer opens"
+    assert INDEX.index('id="how"') < INDEX.index("<video") < INDEX.index('id="app"'), "the video lives in the how-it-works layer"
+    assert (ROOT / "RoutePou-teaser.mp4").stat().st_size < 4_000_000
+    assert webp_size(ROOT / "teaser-poster.webp") == (1280, 720) and (ROOT / "teaser-poster.webp").stat().st_size < 60_000
+    assert "data-poster" in (ROOT / "site.js").read_text(encoding="utf-8")
+
+
 def test_first_view_is_small():
     """Everything the browser must fetch before the page is usable. The owner asked for a fast page."""
     needed = ["index.html", "init.js", "site.css", "site.js", "Vazirmatn-Regular.woff", "Vazirmatn-Bold.woff", "logo-small.webp"]
@@ -270,8 +283,9 @@ def test_readme_download_buttons_match_the_names_the_workflow_publishes():
     readme_en = (ROOT / "README.en.md").read_text(encoding="utf-8")
     for name, workflow in (("RoutePou-android.apk", workflows["android"]), ("RoutePou-windows-x64.exe", workflows["windows"])):
         assert name in workflow
-        for doc in (readme, readme_en, INDEX):
+        for doc in (readme, readme_en):
             assert f"{RELEASE}/{name}" in doc, name
+        assert f'href="{name}" download' in INDEX, name  # the site links to the file beside it
     assert "--prerelease=false" in publish and "--latest" in publish
     for doc in (readme, readme_en):
         for img in re.findall(r'src="([^"]+\.png)"', doc):
